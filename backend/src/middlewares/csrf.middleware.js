@@ -1,7 +1,7 @@
-import crypto from "crypto";
 import { COOKIE_NAMES } from "../constants/auth.constants.js";
 import { CsrfException } from "../exceptions/auth.exceptions.js";
 import { env } from "../config/env.js";
+import { safeEqual } from "../utils/crypto.util.js";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
@@ -12,12 +12,6 @@ const allowedOrigin = (() => {
     return null;
   }
 })();
-
-const safeEqual = (a, b) => {
-  const bufA = Buffer.from(String(a));
-  const bufB = Buffer.from(String(b));
-  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
-};
 
 /**
  * csrfProtection — защита от CSRF для ВСЕХ изменяющих запросов

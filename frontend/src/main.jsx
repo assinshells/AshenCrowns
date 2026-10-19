@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "simplebar-react/dist/simplebar.min.css";
+import "@app/styles/index.css";
 
 import App from "@app/App.jsx";
 

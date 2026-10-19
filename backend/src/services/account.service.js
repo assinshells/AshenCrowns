@@ -1,7 +1,7 @@
 import { UserRepository } from "../repositories/user.repository.js";
 import { SessionService } from "./session.service.js";
 import { OtpService } from "./otp.service.js";
-import { LoginLock } from "./auth.service.js";
+import { LoginLock } from "./loginLock.service.js";
 import { PasswordProvider } from "../providers/password.provider.js";
 import { EmailAdapter } from "../adapters/email.adapter.js";
 import { maskEmail } from "../utils/email.util.js";
@@ -12,16 +12,11 @@ import {
   OtpExpiredException,
   ValidationException,
 } from "../exceptions/auth.exceptions.js";
-import { AUTH_ERRORS, OTP_PURPOSES } from "../constants/auth.constants.js";
+import { APP_NAME, AUTH_ERRORS, OTP_PURPOSES } from "../constants/auth.constants.js";
 import { authConfig } from "../config/auth.config.js";
 
 const resendAfterSeconds = authConfig.otp.resendCooldownSeconds;
 const subjectOf = (userId) => `u${userId}`;
-
-const notify = (email, message) =>
-  EmailAdapter.sendSecurityNotice(email, message).catch((err) =>
-    logger.error(`Security notice delivery failed: ${err.message}`),
-  );
 
 /**
  * Повторная проверка личности: текущий пароль сверяется на сервере.
@@ -29,12 +24,11 @@ const notify = (email, message) =>
  * украденную сессию нельзя использовать для подбора пароля.
  */
 const assertCurrentPassword = async (user, currentPassword) => {
-  const emailKey = user.email.toLowerCase();
-  await LoginLock.assertNotLocked(emailKey);
+  await LoginLock.assertNotLocked(user.email);
 
   const ok = await PasswordProvider.verify(currentPassword, user.password_hash);
   if (!ok) {
-    await LoginLock.recordFailure(emailKey);
+    await LoginLock.recordFailure(user.email);
     throw new InvalidCurrentPasswordException();
   }
 };
@@ -76,9 +70,9 @@ export const AccountService = {
 
     // Все сессии (включая текущую) завершаются: нужен повторный вход.
     await SessionService.destroyAllForUser(user.id);
-    await LoginLock.clear(user.email.toLowerCase());
+    await LoginLock.clear(user.email);
 
-    notify(user.email, "Пароль вашего аккаунта «Ashen Crowns» был изменён.");
+    EmailAdapter.notifySecurity(user.email, `Пароль вашего аккаунта «${APP_NAME}» был изменён.`);
   },
 
   // ── Смена email: запрос → код на НОВЫЙ email → подтверждение ─────────────
@@ -119,9 +113,9 @@ export const AccountService = {
     }
 
     // Уведомляем прежний адрес о событии безопасности.
-    notify(
+    EmailAdapter.notifySecurity(
       user.email,
-      `Email вашего аккаунта «Ashen Crowns» был изменён на ${maskEmail(newEmail)}.`,
+      `Email вашего аккаунта «${APP_NAME}» был изменён на ${maskEmail(newEmail)}.`,
     );
 
     return { maskedEmail: maskEmail(newEmail) };
@@ -135,7 +129,7 @@ export const AccountService = {
 
     // Все сессии и «хвосты» в Redis (блокировка входа, ожидающие коды).
     await SessionService.destroyAllForUser(user.id);
-    await LoginLock.clear(user.email.toLowerCase());
+    await LoginLock.clear(user.email);
     await OtpService.discardAllForSubject(subjectOf(user.id));
 
     EmailAdapter.sendAccountDeleted(user.email).catch((err) =>

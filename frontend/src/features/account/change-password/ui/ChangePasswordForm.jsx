@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { requestPasswordChange } from "@features/account/change-password/api/changePassword.api.js";
 import { useRequest } from "@shared/lib/useRequest.js";
-import { ApiError } from "@shared/api/http.js";
+import { passwordsMatch } from "@shared/lib/passwords.js";
 import { PASSWORD_RULES } from "@shared/constants/app.js";
+import { ReadonlyField } from "@shared/ui/ReadonlyField.jsx";
 import { TextField } from "@shared/ui/TextField.jsx";
 import { ErrorAlert } from "@shared/ui/ErrorAlert.jsx";
 import { SubmitButton } from "@shared/ui/SubmitButton.jsx";
@@ -16,10 +17,7 @@ export function ChangePasswordForm({ maskedEmail, onRequested }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      setError(new ApiError("Пароли не совпадают"));
-      return;
-    }
+    if (!passwordsMatch(newPassword, confirmPassword, setError)) return;
     const result = await run(() =>
       requestPasswordChange({ currentPassword, newPassword, confirmPassword }),
     );
@@ -30,18 +28,12 @@ export function ChangePasswordForm({ maskedEmail, onRequested }) {
     <form onSubmit={handleSubmit} aria-busy={loading}>
       <ErrorAlert error={error} />
 
-      <div className="mb-3">
-        <label htmlFor="pw-current-email" className="form-label">
-          Текущий email
-        </label>
-        <input
-          id="pw-current-email"
-          className="form-control-plaintext"
-          value={maskedEmail}
-          readOnly
-        />
-        <div className="form-text">На этот адрес будет отправлен код подтверждения.</div>
-      </div>
+      <ReadonlyField
+        id="pw-current-email"
+        label="Текущий email"
+        value={maskedEmail}
+        hint="На этот адрес будет отправлен код подтверждения."
+      />
 
       <TextField
         id="pw-current"

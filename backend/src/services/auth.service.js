@@ -1,20 +1,19 @@
 import { UserRepository } from "../repositories/user.repository.js";
-import { OtpRepository } from "../repositories/otp.repository.js";
 import { SessionService } from "./session.service.js";
 import { OtpService } from "./otp.service.js";
+import { LoginLock } from "./loginLock.service.js";
 import { PasswordProvider } from "../providers/password.provider.js";
 import { EmailAdapter } from "../adapters/email.adapter.js";
 import { authConfig } from "../config/auth.config.js";
 import { maskEmail } from "../utils/email.util.js";
 import {
   AuthenticationException,
-  AccountLockedException,
   AuthorizationException,
   ConflictException,
   EmailNotVerifiedException,
   OtpExpiredException,
 } from "../exceptions/auth.exceptions.js";
-import { AUTH_ERRORS, OTP_PURPOSES } from "../constants/auth.constants.js";
+import { APP_NAME, AUTH_ERRORS, OTP_PURPOSES } from "../constants/auth.constants.js";
 
 const resendAfterSeconds = authConfig.otp.resendCooldownSeconds;
 
@@ -22,18 +21,6 @@ const conflictError = (field) =>
   field === "email"
     ? new ConflictException(AUTH_ERRORS.EMAIL_TAKEN, "EMAIL_TAKEN")
     : new ConflictException(AUTH_ERRORS.LOGIN_TAKEN, "LOGIN_TAKEN");
-
-/** Общие проверки блокировки перебора пароля (используются и при входе, и при смене пароля/email). */
-export const LoginLock = {
-  async assertNotLocked(email) {
-    const { count, ttl } = await OtpRepository.getLoginFailures(email);
-    if (count >= authConfig.loginLock.maxFailures) {
-      throw new AccountLockedException(ttl || authConfig.loginLock.lockSeconds);
-    }
-  },
-  recordFailure: (email) => OtpRepository.incrementLoginFailures(email),
-  clear: (email) => OtpRepository.clearLoginFailures(email),
-};
 
 export const AuthService = {
   async register({ login, email, password }) {
@@ -166,32 +153,22 @@ export const AuthService = {
   },
 
   async resetPassword({ resetToken, password }) {
+    const invalidToken = () =>
+      new AuthorizationException(AUTH_ERRORS.RESET_TOKEN_INVALID, "RESET_TOKEN_INVALID");
+
     const userId = await OtpService.consumeResetToken(resetToken);
-    if (!userId) {
-      throw new AuthorizationException(
-        AUTH_ERRORS.RESET_TOKEN_INVALID,
-        "RESET_TOKEN_INVALID",
-      );
-    }
+    if (!userId) throw invalidToken();
 
     const user = await UserRepository.findById(userId);
-    if (!user) {
-      throw new AuthorizationException(
-        AUTH_ERRORS.RESET_TOKEN_INVALID,
-        "RESET_TOKEN_INVALID",
-      );
-    }
+    if (!user) throw invalidToken();
 
     const passwordHash = await PasswordProvider.hash(password);
     await UserRepository.updatePassword(user.id, passwordHash);
 
     // Смена пароля отзывает ВСЕ активные сессии и снимает блокировку входа.
     await SessionService.destroyAllForUser(user.id);
-    await LoginLock.clear(user.email.toLowerCase());
+    await LoginLock.clear(user.email);
 
-    EmailAdapter.sendSecurityNotice(
-      user.email,
-      "Пароль вашего аккаунта «Ashen Crowns» был изменён.",
-    ).catch(() => {});
+    EmailAdapter.notifySecurity(user.email, `Пароль вашего аккаунта «${APP_NAME}» был изменён.`);
   },
 };

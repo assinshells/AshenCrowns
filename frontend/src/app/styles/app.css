@@ -36,3 +36,54 @@
   border-color: transparent !important;
   box-shadow: none;
 }
+
+/* =========================================================
+   PASSWORD FIELD — «глаз» внутри input, без рамок и фона
+   ========================================================= */
+.password-field {
+  position: relative;
+}
+
+/* Место под иконку, чтобы длинный пароль не уходил под неё */
+.password-field .form-control {
+  padding-right: var(--password-toggle-size);
+}
+
+/* Нативный «глаз» Edge/IE дублировал бы наш — скрываем */
+.password-field input::-ms-reveal,
+.password-field input::-ms-clear {
+  display: none;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--password-toggle-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary-color);
+  cursor: pointer;
+}
+.password-toggle:hover {
+  color: var(--bs-body-color);
+}
+/* Без рамки в покое, но фокус с клавиатуры остаётся видимым (a11y) */
+.password-toggle:focus {
+  outline: none;
+}
+.password-toggle:focus-visible {
+  color: var(--bs-primary);
+  outline: 2px solid rgba(var(--bs-primary-rgb), 0.5);
+  outline-offset: -6px;
+  border-radius: var(--bs-border-radius);
+}
+.password-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

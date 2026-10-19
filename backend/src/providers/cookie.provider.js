@@ -1,7 +1,7 @@
-import crypto from "crypto";
 import { COOKIE_NAMES } from "../constants/auth.constants.js";
 import { authConfig } from "../config/auth.config.js";
 import { env } from "../config/env.js";
+import { randomHex } from "../utils/crypto.util.js";
 
 /**
  * CookieProvider — единственная точка установки/очистки auth-cookies.
@@ -20,7 +20,7 @@ const base = {
 
 export const CookieProvider = {
   generateCsrfToken() {
-    return crypto.randomBytes(32).toString("hex");
+    return randomHex();
   },
 
   setSession(res, sid) {

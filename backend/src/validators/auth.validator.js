@@ -81,6 +81,16 @@ const newPasswordErrors = (password, confirmPassword) => {
   return errors;
 };
 
+const MAX_LOGIN_PASSWORD_LENGTH = 256;
+const CURRENT_PASSWORD_MESSAGE = "Укажите текущий пароль";
+
+// Пароль, введённый для проверки (вход, подтверждение личности): политику не раскрываем.
+const enteredPasswordErrors = (value, message = "Укажите пароль") =>
+  isString(value) && value && value.length <= MAX_LOGIN_PASSWORD_LENGTH ? [] : [message];
+
+const purposeErrors = (purpose, allowed) =>
+  allowed.includes(purpose) ? [] : ["Неизвестный сценарий подтверждения"];
+
 const codeErrors = (code) =>
   isString(code) && /^\d{6}$/.test(code) ? [] : ["Код состоит из 6 цифр"];
 
@@ -98,12 +108,8 @@ export const validateRegisterRequest = (raw) => {
 
 export const validateLoginRequest = (raw) => {
   const b = body(raw);
-  const errors = [...emailErrors(b.email)];
   // При входе политику пароля не раскрываем — только базовые проверки.
-  if (!isString(b.password) || !b.password || b.password.length > 256) {
-    errors.push("Укажите пароль");
-  }
-  finish(errors);
+  finish([...emailErrors(b.email), ...enteredPasswordErrors(b.password)]);
 };
 
 export const validateForgotPasswordRequest = (raw) =>
@@ -111,20 +117,16 @@ export const validateForgotPasswordRequest = (raw) =>
 
 export const validateVerifyOtpRequest = (raw) => {
   const b = body(raw);
-  const errors = [...emailErrors(b.email), ...codeErrors(b.code)];
-  if (!PUBLIC_OTP_PURPOSES.includes(b.purpose)) {
-    errors.push("Неизвестный сценарий подтверждения");
-  }
-  finish(errors);
+  finish([
+    ...emailErrors(b.email),
+    ...codeErrors(b.code),
+    ...purposeErrors(b.purpose, PUBLIC_OTP_PURPOSES),
+  ]);
 };
 
 export const validateResendOtpRequest = (raw) => {
   const b = body(raw);
-  const errors = [...emailErrors(b.email)];
-  if (!PUBLIC_OTP_PURPOSES.includes(b.purpose)) {
-    errors.push("Неизвестный сценарий подтверждения");
-  }
-  finish(errors);
+  finish([...emailErrors(b.email), ...purposeErrors(b.purpose, PUBLIC_OTP_PURPOSES)]);
 };
 
 export const validateResetPasswordRequest = (raw) => {
@@ -139,34 +141,28 @@ export const validateResetPasswordRequest = (raw) => {
 // ── Операции авторизованного пользователя ─────────────────────────────────
 export const validatePasswordChangeRequest = (raw) => {
   const b = body(raw);
-  const errors = [...newPasswordErrors(b.newPassword, b.confirmPassword)];
-  if (!isString(b.currentPassword) || !b.currentPassword || b.currentPassword.length > 256) {
-    errors.push("Укажите текущий пароль");
-  }
-  finish(errors);
+  finish([
+    ...newPasswordErrors(b.newPassword, b.confirmPassword),
+    ...enteredPasswordErrors(b.currentPassword, CURRENT_PASSWORD_MESSAGE),
+  ]);
 };
 
 export const validateEmailChangeRequest = (raw) => {
   const b = body(raw);
-  const errors = [...emailErrors(b.newEmail, "Новый email")];
-  if (!isString(b.currentPassword) || !b.currentPassword || b.currentPassword.length > 256) {
-    errors.push("Укажите текущий пароль");
-  }
-  finish(errors);
+  finish([
+    ...emailErrors(b.newEmail, "Новый email"),
+    ...enteredPasswordErrors(b.currentPassword, CURRENT_PASSWORD_MESSAGE),
+  ]);
 };
 
 export const validateConfirmCodeRequest = (raw) => finish(codeErrors(body(raw).code));
 
 export const validateAccountResendRequest = (raw) => {
-  const purpose = body(raw).purpose;
-  if (![OTP_PURPOSES.CHANGE_PASSWORD, OTP_PURPOSES.CHANGE_EMAIL].includes(purpose)) {
-    finish(["Неизвестный сценарий подтверждения"]);
-  }
+  finish(
+    purposeErrors(body(raw).purpose, [OTP_PURPOSES.CHANGE_PASSWORD, OTP_PURPOSES.CHANGE_EMAIL]),
+  );
 };
 
 export const validateAccountDeleteRequest = (raw) => {
-  const b = body(raw);
-  if (!isString(b.currentPassword) || !b.currentPassword || b.currentPassword.length > 256) {
-    finish(["Укажите текущий пароль"]);
-  }
+  finish(enteredPasswordErrors(body(raw).currentPassword, CURRENT_PASSWORD_MESSAGE));
 };

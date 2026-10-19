@@ -1,9 +1,7 @@
 import crypto from "crypto";
+import { sha256 } from "../utils/crypto.util.js";
 import { SessionRepository } from "../repositories/session.repository.js";
 import { authConfig } from "../config/auth.config.js";
-
-const sha256 = (value) =>
-  crypto.createHash("sha256").update(value).digest("hex");
 
 // Абсолютный предел жизни сессии, независимо от скользящего продления.
 const ABSOLUTE_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;

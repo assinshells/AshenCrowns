@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { APP_NAME } from "@shared/constants/app.js";
 import { ROUTES } from "@shared/constants/routes.js";
 import { useSessionStore } from "@entities/session/model/useSessionStore.js";
 import { UserAvatar } from "@entities/session/ui/UserAvatar.jsx";
+import { NavItems } from "./NavItems.jsx";
 import { LogoutButton } from "@features/auth/logout/ui/LogoutButton.jsx";
-
-const navClass = ({ isActive }) => `nav-link${isActive ? " active" : ""}`;
 
 /** Верхняя панель: логотип, основная навигация, аватар, имя, выход. */
 export function AppHeader() {
@@ -33,15 +32,7 @@ export function AppHeader() {
 
           <div id="main-nav" className={`collapse navbar-collapse${open ? " show" : ""}`}>
             <ul className="navbar-nav me-auto" onClick={() => setOpen(false)}>
-              <li className="nav-item">
-                <NavLink end className={navClass} to={ROUTES.home}>Главная</NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink className={navClass} to={ROUTES.hero}>Персонаж</NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink className={navClass} to={ROUTES.settingsSecurity}>Настройки</NavLink>
-              </li>
+              <NavItems />
             </ul>
 
             <div className="d-flex align-items-center gap-2 py-2 py-md-0">

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { resetPasswordRequest } from "@features/auth/reset-password/api/resetPassword.api.js";
 import { useRequest } from "@shared/lib/useRequest.js";
-import { ApiError } from "@shared/api/http.js";
+import { passwordsMatch } from "@shared/lib/passwords.js";
 import { ROUTES } from "@shared/constants/routes.js";
 import { PASSWORD_RULES } from "@shared/constants/app.js";
 import { TextField } from "@shared/ui/TextField.jsx";
@@ -16,10 +16,7 @@ export function ResetPasswordForm({ resetToken, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      setError(new ApiError("Пароли не совпадают"));
-      return;
-    }
+    if (!passwordsMatch(password, confirmPassword, setError)) return;
     const result = await run(() =>
       resetPasswordRequest({ resetToken, password, confirmPassword }),
     );

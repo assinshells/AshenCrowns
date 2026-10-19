@@ -39,12 +39,6 @@ export class EmailNotVerifiedException extends AuthorizationException {
   }
 }
 
-export class NotFoundException extends BaseException {
-  constructor(message = AUTH_ERRORS.USER_NOT_FOUND) {
-    super(message, HTTP_STATUS.NOT_FOUND, "NOT_FOUND");
-  }
-}
-
 export class ConflictException extends BaseException {
   constructor(message, code = "CONFLICT") {
     super(message, HTTP_STATUS.CONFLICT, code);

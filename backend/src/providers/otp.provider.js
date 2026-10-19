@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { authConfig } from "../config/auth.config.js";
+import { randomHex, safeEqual, sha256 } from "../utils/crypto.util.js";
 
 export const OtpProvider = {
   /** Шестизначный числовой код, криптографически стойкий генератор. */
@@ -20,18 +21,12 @@ export const OtpProvider = {
       .digest("hex");
   },
 
-  safeEqualHex(a, b) {
-    const bufA = Buffer.from(String(a), "hex");
-    const bufB = Buffer.from(String(b), "hex");
-    return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
-  },
+  safeEqualHex: safeEqual,
 
   /** Непрозрачный одноразовый токен (reset-password). */
   generateOpaqueToken() {
-    return crypto.randomBytes(32).toString("hex");
+    return randomHex();
   },
 
-  sha256(value) {
-    return crypto.createHash("sha256").update(value).digest("hex");
-  },
+  sha256,
 };

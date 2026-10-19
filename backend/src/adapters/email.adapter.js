@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import logger from "../config/logger.js";
 import { env } from "../config/env.js";
-import { OTP_PURPOSES } from "../constants/auth.constants.js";
+import { APP_NAME, OTP_PURPOSES } from "../constants/auth.constants.js";
 
 /**
  * EmailAdapter — отправка писем.
@@ -19,8 +19,8 @@ const OTP_SUBJECTS = {
 };
 
 const OTP_INTRO = {
-  [OTP_PURPOSES.VERIFY_EMAIL]: "Для завершения регистрации в «Ashen Crowns» введите код:",
-  [OTP_PURPOSES.RESET_PASSWORD]: "Код для восстановления пароля в «Ashen Crowns»:",
+  [OTP_PURPOSES.VERIFY_EMAIL]: `Для завершения регистрации в «${APP_NAME}» введите код:`,
+  [OTP_PURPOSES.RESET_PASSWORD]: `Код для восстановления пароля в «${APP_NAME}»:`,
   [OTP_PURPOSES.CHANGE_PASSWORD]: "Код для подтверждения смены пароля:",
   [OTP_PURPOSES.CHANGE_EMAIL]: "Код для подтверждения нового email:",
 };
@@ -75,7 +75,7 @@ export const EmailAdapter = {
       to,
       subject: "Аккаунт удалён",
       text:
-        "Ваш аккаунт «Ashen Crowns» был удалён по вашему запросу.\n\n" +
+        `Ваш аккаунт «${APP_NAME}» был удалён по вашему запросу.\n\n` +
         "Если это были не вы, свяжитесь с поддержкой.",
     });
   },
@@ -88,5 +88,12 @@ export const EmailAdapter = {
         `${message}\n\n` +
         "Если это были не вы, немедленно восстановите доступ через «Забыли пароль?».",
     });
+  },
+
+  /** Уведомление о событии безопасности без ожидания: сбой доставки только логируется. */
+  notifySecurity(to, message) {
+    return this.sendSecurityNotice(to, message).catch((err) =>
+      logger.error(`Security notice delivery failed: ${err.message}`),
+    );
   },
 };

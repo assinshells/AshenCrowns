@@ -1,3 +1,5 @@
+export const APP_NAME = "Ashen Crowns";
+
 export const AUTH_ERRORS = Object.freeze({
   INVALID_CREDENTIALS: "Неверный email или пароль",
   LOGIN_TAKEN: "Этот логин уже занят",
@@ -8,7 +10,6 @@ export const AUTH_ERRORS = Object.freeze({
   OTP_INVALID: "Неверный код",
   OTP_TOO_MANY_ATTEMPTS:
     "Слишком много неверных попыток. Запросите новый код.",
-  OTP_RESEND_COOLDOWN: "Повторная отправка пока недоступна",
   OTP_SEND_LIMIT: "Достигнут лимит отправки кодов. Попробуйте позже.",
   RESET_TOKEN_INVALID: "Ссылка для сброса пароля недействительна или устарела",
   UNAUTHORIZED: "Требуется авторизация",
@@ -29,12 +30,6 @@ export const AUTH_ERRORS = Object.freeze({
 export const COOKIE_NAMES = Object.freeze({
   session: "ac_sid",
   csrf: "ac_csrf",
-});
-
-// Гендер хранится только в БД (в UI и API не участвует).
-export const GENDER_VALUES = Object.freeze({
-  MALE: "male",
-  FEMALE: "female",
 });
 
 // Сценарии применения OTP. Значение попадает в HMAC и ключ Redis,

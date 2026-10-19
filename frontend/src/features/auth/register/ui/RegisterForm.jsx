@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { registerRequest } from "@features/auth/register/api/register.api.js";
 import { useRequest } from "@shared/lib/useRequest.js";
-import { ApiError } from "@shared/api/http.js";
+import { passwordsMatch } from "@shared/lib/passwords.js";
 import { ROUTES } from "@shared/constants/routes.js";
 import { LOGIN_RULES, PASSWORD_RULES } from "@shared/constants/app.js";
 import { TextField } from "@shared/ui/TextField.jsx";
@@ -19,10 +19,7 @@ export function RegisterForm({ onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      setError(new ApiError("Пароли не совпадают"));
-      return;
-    }
+    if (!passwordsMatch(password, confirmPassword, setError)) return;
     const result = await run(() =>
       registerRequest({ login, email, password, confirmPassword }),
     );
