@@ -10,7 +10,7 @@ import { ROUTES } from "@shared/constants/routes.js";
  * Клиентское состояние сбрасывается и при ошибке сети — доступ к защищённым
  * данным определяется сервером, а не этим флагом.
  */
-export function LogoutButton({ className = "btn btn-outline-secondary btn-sm", children = "Выход" }) {
+export function LogoutButton({ className = "btn btn-outline-secondary btn-sm", children = "Выход", ...rest }) {
   const navigate = useNavigate();
   const clear = useSessionStore((s) => s.clear);
   const { loading, run } = useRequest();
@@ -22,7 +22,7 @@ export function LogoutButton({ className = "btn btn-outline-secondary btn-sm", c
   };
 
   return (
-    <button type="button" className={className} onClick={handleClick} disabled={loading}>
+    <button type="button" className={className} onClick={handleClick} disabled={loading} {...rest}>
       {children}
     </button>
   );

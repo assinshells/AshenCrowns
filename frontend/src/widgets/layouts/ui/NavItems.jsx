@@ -1,27 +1,17 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { ROUTES } from "@shared/constants/routes.js";
 
-// Единый список основных разделов для верхнего и бокового меню.
-// activePrefix — раздел подсвечивается на всех вложенных маршрутах.
+// Основные разделы боковой панели. «Настройки» и «Выход» — в меню пользователя (UserMenu).
 const NAV_ITEMS = [
   { to: ROUTES.home, label: "Главная", end: true },
   { to: ROUTES.hero, label: "Персонаж" },
-  { to: ROUTES.settingsSecurity, label: "Настройки", activePrefix: "/settings" },
 ];
 
-/** <li> с пунктами основного меню (оборачивается в <ul> вызывающим кодом). */
+/** <li> с пунктами меню (оборачивается в <ul> вызывающим кодом). */
 export function NavItems() {
-  const { pathname } = useLocation();
-
-  return NAV_ITEMS.map(({ to, label, end, activePrefix }) => (
+  return NAV_ITEMS.map(({ to, label, end }) => (
     <li className="nav-item" key={to}>
-      <NavLink
-        end={end}
-        to={to}
-        className={({ isActive }) =>
-          `nav-link${isActive || (activePrefix && pathname.startsWith(activePrefix)) ? " active" : ""}`
-        }
-      >
+      <NavLink end={end} to={to} className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
         {label}
       </NavLink>
     </li>

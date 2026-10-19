@@ -87,3 +87,99 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* =========================================================
+   APP SIDEBAR — как в Claude, без сворачивания
+   ≥ md: закреплена слева. < md: выезжающая панель + плавающая кнопка
+   ========================================================= */
+.app-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1045; /* выше .offcanvas-backdrop (1040) */
+  display: flex;
+  flex-direction: column;
+  width: min(var(--app-sidebar-width), 85vw);
+  background-color: var(--bs-tertiary-bg);
+  border-right: 1px solid var(--bs-border-color);
+  transform: translateX(-100%);
+  visibility: hidden; /* закрытая панель недоступна для Tab и скринридеров */
+  transition:
+    transform 0.3s ease-in-out,
+    visibility 0.3s;
+}
+.app-sidebar.is-open {
+  transform: none;
+  visibility: visible;
+}
+
+@media (min-width: 768px) {
+  .app-sidebar {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    z-index: auto;
+    flex-shrink: 0;
+    align-self: flex-start;
+    width: var(--app-sidebar-width);
+    height: 100vh;
+    transform: none;
+    visibility: visible;
+    transition: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar {
+    transition: none;
+  }
+}
+
+.app-sidebar-brand {
+  color: var(--bs-emphasis-color);
+}
+
+.app-content {
+  min-width: 0; /* контент не распирает flex-контейнер */
+}
+
+/* Плавающая кнопка открытия меню (мобильный) */
+.app-fab {
+  z-index: 1030;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0;
+}
+
+/* Кнопка пользователя в футере сайдбара */
+.user-menu-toggle {
+  padding: 0.5rem;
+  color: var(--bs-body-color);
+  background: transparent;
+  border: 0;
+  border-radius: var(--bs-border-radius);
+}
+.user-menu-toggle:hover,
+.user-menu-toggle[aria-expanded="true"] {
+  background-color: var(--bs-secondary-bg);
+}
+.user-menu-toggle:focus {
+  outline: none;
+}
+.user-menu-toggle:focus-visible {
+  outline: 2px solid rgba(var(--bs-primary-rgb), 0.5);
+}
+.user-menu-chevron-closed {
+  transform: rotate(180deg);
+}
+/* Bootstrap раскрывает .dropup вверх только с Popper (data-bs-popper), а Bootstrap JS
+   не используется — поэтому позицию «над кнопкой» задаём сами. */
+.dropup > .dropdown-menu {
+  top: auto;
+  bottom: 100%;
+  left: 0;
+  margin: 0 0 0.25rem;
+}
