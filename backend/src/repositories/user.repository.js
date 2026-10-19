@@ -1,7 +1,8 @@
 import { pool } from "../config/database.js";
 
 const COLUMNS =
-  "id, login, email, password_hash, avatar_path, email_verified_at, created_at";
+  "id, login, email, password_hash, avatar_path, email_verified_at, created_at, " +
+  "level, health, max_health, experience, experience_to_next, silver, rubies";
 
 const UNIQUE_VIOLATION = "23505";
 

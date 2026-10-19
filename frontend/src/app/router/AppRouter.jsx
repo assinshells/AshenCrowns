@@ -39,12 +39,12 @@ export function AppRouter() {
             <Route path={ROUTES.settingsSecurity} element={<SecuritySettingsPage />} />
             <Route path={ROUTES.settingsNotifications} element={<NotificationsSettingsPage />} />
           </Route>
-          <Route path={ROUTES.about} element={<StubPage title="Об игре" />} />
-          <Route path={ROUTES.rules} element={<StubPage title="Правила" />} />
-          <Route path={ROUTES.support} element={<StubPage title="Поддержка" />} />
+          <Route path={ROUTES.about} element={<StubPage />} />
+          <Route path={ROUTES.rules} element={<StubPage />} />
+          <Route path={ROUTES.support} element={<StubPage />} />
           <Route
             path={ROUTES.version}
-            element={<StubPage title="Версия">Версия приложения: {APP_VERSION}</StubPage>}
+            element={<StubPage>Версия приложения: {APP_VERSION}</StubPage>}
           />
         </Route>
       </Route>

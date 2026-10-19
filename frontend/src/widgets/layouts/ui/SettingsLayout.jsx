@@ -7,7 +7,6 @@ const tabClass = ({ isActive }) => `nav-link${isActive ? " active" : ""}`;
 export function SettingsLayout() {
   return (
     <>
-      <h1 className="h3 mb-3">Настройки</h1>
       <ul className="nav nav-tabs flex-nowrap overflow-x-auto overflow-y-hidden text-nowrap mb-4">
         <li className="nav-item">
           <NavLink className={tabClass} to={ROUTES.settingsSecurity}>Безопасность</NavLink>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { AppSidebar, SIDEBAR_ID } from "./AppSidebar.jsx";
+import { TopBar } from "./TopBar.jsx";
 import { AppFooter } from "./AppFooter.jsx";
 
 /**
@@ -28,7 +29,7 @@ export function AppLayout() {
       {!open && (
         <button
           type="button"
-          className="btn btn-primary rounded-circle shadow position-fixed bottom-0 start-0 m-3 d-md-none app-fab"
+          className="btn btn-primary rounded-circle shadow position-fixed bottom-0 end-0 m-3 d-md-none app-fab"
           aria-label="Открыть меню"
           aria-controls={SIDEBAR_ID}
           aria-expanded={open}
@@ -39,6 +40,7 @@ export function AppLayout() {
       )}
 
       <div className="app-content flex-grow-1 d-flex flex-column">
+        <TopBar />
         <main className="flex-grow-1 container-fluid py-3 py-md-4 overflow-x-hidden">
           <Outlet />
         </main>

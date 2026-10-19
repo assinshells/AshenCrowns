@@ -259,3 +259,17 @@ test("удаление аккаунта требует авторизации", 
   const res = await anon.post("/api/account/delete", { currentPassword: VALID_PASSWORD });
   assert.equal(res.status, 401);
 });
+
+test("/me отдаёт стартовые игровые параметры из БД", async () => {
+  const { client } = await registerAndLogin(ctx);
+  const { user } = (await client.get("/api/auth/me")).body;
+  assert.deepEqual(user.stats, {
+    level: 1,
+    health: 75,
+    maxHealth: 75,
+    experience: 0,
+    experienceToNext: 5,
+    silver: 200,
+    rubies: 0,
+  });
+});

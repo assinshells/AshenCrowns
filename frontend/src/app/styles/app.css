@@ -183,3 +183,35 @@
   left: 0;
   margin: 0 0 0.25rem;
 }
+
+/* Верхняя панель с параметрами игрока */
+@media (max-width: 767.98px) {
+  /* место под плавающую кнопку меню справа */
+  .app-topbar {
+    padding-right: 4.5rem !important;
+    min-height: 4rem;
+  }
+}
+
+/* Полоска опыта: нативный <progress> — ширина без inline-стилей */
+.game-xp {
+  appearance: none;
+  width: 5rem;
+  height: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: var(--bs-secondary-bg);
+}
+.game-xp::-webkit-progress-bar {
+  background-color: var(--bs-secondary-bg);
+  border-radius: 999px;
+}
+.game-xp::-webkit-progress-value {
+  background-color: var(--bs-primary);
+  border-radius: 999px;
+}
+.game-xp::-moz-progress-bar {
+  background-color: var(--bs-primary);
+  border-radius: 999px;
+}

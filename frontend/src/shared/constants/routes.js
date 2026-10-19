@@ -15,6 +15,18 @@ export const ROUTES = Object.freeze({
   verifyOtp: "/verify-otp",
 });
 
+/** Заголовки страниц игровой зоны (показываются в верхней панели). */
+export const ROUTE_TITLES = Object.freeze({
+  [ROUTES.home]: "Главная",
+  [ROUTES.hero]: "Персонаж",
+  [ROUTES.settingsSecurity]: "Настройки",
+  [ROUTES.settingsNotifications]: "Настройки",
+  [ROUTES.about]: "Об игре",
+  [ROUTES.rules]: "Правила",
+  [ROUTES.support]: "Поддержка",
+  [ROUTES.version]: "Версия",
+});
+
 /** Маршруты, куда безопасно возвращать пользователя после входа. */
 export const PROTECTED_PATHS = Object.freeze([
   ROUTES.home,

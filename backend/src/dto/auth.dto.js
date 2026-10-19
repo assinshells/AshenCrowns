@@ -44,10 +44,22 @@ export const toEmailChangeDto = (b) => ({
   newEmail: normalizeEmail(b.newEmail),
 });
 
+/** Игровые параметры игрока (значения хранятся в БД; стартовые — DEFAULT колонок). */
+export const toPlayerStats = (user) => ({
+  level: user.level,
+  health: user.health,
+  maxHealth: user.max_health,
+  experience: user.experience,
+  experienceToNext: user.experience_to_next,
+  silver: user.silver,
+  rubies: user.rubies,
+});
+
 /** Публичное представление пользователя: без хеша и без полного email. */
 export const toPublicUser = (user, maskEmail) => ({
   id: user.id,
   login: user.login,
   maskedEmail: maskEmail(user.email),
   avatarPath: user.avatar_path,
+  stats: toPlayerStats(user),
 });

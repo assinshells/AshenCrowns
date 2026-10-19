@@ -51,7 +51,7 @@ export function UserMenu({ onNavigate }) {
         <UserAvatar src={user?.avatarPath} size={36} />
         <span className="flex-grow-1 text-truncate">
           <span className="d-block fw-semibold text-truncate">{user?.login}</span>
-          <span className="d-block small text-body-secondary">Уровень {user?.level ?? 1}</span>
+          <span className="d-block small text-body-secondary">Уровень {user?.stats?.level ?? 1}</span>
         </span>
         <ChevronUp size={16} aria-hidden="true" className={open ? "" : "user-menu-chevron-closed"} />
       </button>

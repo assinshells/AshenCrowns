@@ -1,8 +1,4 @@
-export function StubPage({ title, children }) {
-  return (
-    <>
-      <h1 className="h3 mb-3">{title}</h1>
-      <p className="text-body-secondary">{children ?? "Раздел в разработке."}</p>
-    </>
-  );
+/** Заготовка раздела в разработке. Заголовок страницы показывает верхняя панель (TopBar). */
+export function StubPage({ children }) {
+  return <p className="text-body-secondary">{children ?? "Раздел в разработке."}</p>;
 }
