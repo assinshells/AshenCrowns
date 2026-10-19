@@ -6,24 +6,7 @@
 *::after {
   box-sizing: border-box;
 }
-body {
-  min-height: 100vh;
-  margin: 0;
-  font-family: var(--body-font-family);
-  color: var(--body-font-color);
-  background:
-    radial-gradient(
-      circle at 20% 20%,
-      rgba(139, 92, 246, 0.18),
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at 80% 80%,
-      rgba(34, 211, 238, 0.1),
-      transparent 35%
-    ),
-    var(--body-background-color);
-}
+
 /* =========================================================
    INPUTS / SELECT / TEXTAREA / RADIO / CHECKBOX / BUTTONS
    ========================================================= */
