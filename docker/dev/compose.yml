@@ -82,7 +82,6 @@ services:
     volumes:
       - ../../backend/src:/app/src
       - ../../backend/package.json:/app/package.json
-      - ../../backend/nodemon.json:/app/nodemon.json
       - backend_node_modules_dev:/app/node_modules
     depends_on:
       postgres:
