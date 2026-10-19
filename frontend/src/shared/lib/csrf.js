@@ -1,14 +1,8 @@
-const CSRF_COOKIE_NAME = "csrfToken";
+const CSRF_COOKIE_NAME = "ac_csrf";
 
 /**
- * getCsrfToken — читает значение csrfToken cookie напрямую из
- * document.cookie. Cookie сознательно НЕ httpOnly (в отличие от
- * refreshToken) — это и есть double-submit-cookie паттерн: сервер
- * сверяет это значение с заголовком X-CSRF-Token на refresh/logout.
- *
- * Читаем каждый раз из document.cookie, а не кэшируем в памяти —
- * так значение не может рассинхронизироваться с тем, что реально
- * отправит браузер.
+ * Читает CSRF-токен из cookie (double-submit). Cookie сознательно не httpOnly;
+ * httpOnly-cookie сессии из JS недоступна вообще.
  */
 export const getCsrfToken = () => {
   const match = document.cookie.match(

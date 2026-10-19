@@ -1,25 +1,30 @@
+import { useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "@widgets/layouts";
 import { LoginForm } from "@features/auth/login/ui/LoginForm.jsx";
-import { AUTH_SCREENS } from "@shared/constants/auth.constants.js";
-import { APP_NAME } from "@shared/constants/auth.constants.js";
+import { useSessionStore } from "@entities/session/model/useSessionStore.js";
+import { ROUTES } from "@shared/constants/routes.js";
+import { getSafeRedirect } from "@shared/lib/safeRedirect.js";
+import { Notice } from "@shared/ui/Notice.jsx";
 
-export function LoginPage({ onNavigate, onLoginSuccess }) {
+export function LoginPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const setUser = useSessionStore((s) => s.setUser);
+
+  const handleSuccess = (user) => {
+    setUser(user);
+    navigate(getSafeRedirect(location.state?.from), { replace: true });
+  };
+
+  const handleUnverified = ({ email, maskedEmail }) =>
+    navigate(ROUTES.verifyOtp, {
+      state: { purpose: "verify_email", email, maskedEmail, initialCooldown: 0, unverified: true },
+    });
+
   return (
-    <AuthLayout
-      title={APP_NAME}
-      subtitle="Тут усе пристойно. Майже. Це ж чат — а чати завжди трохи брудні."
-    >
-      <LoginForm
-        onSuccess={(login) => {
-          if (onLoginSuccess) {
-            onLoginSuccess(login);
-          } else {
-            onNavigate(AUTH_SCREENS.APP);
-          }
-        }}
-        onRegister={() => onNavigate(AUTH_SCREENS.REGISTER)}
-        onForgot={() => onNavigate(AUTH_SCREENS.FORGOT)}
-      />
+    <AuthLayout title="Вход">
+      <Notice>{location.state?.notice}</Notice>
+      <LoginForm onSuccess={handleSuccess} onUnverified={handleUnverified} />
     </AuthLayout>
   );
 }

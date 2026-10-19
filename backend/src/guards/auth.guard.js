@@ -1,23 +1,32 @@
-import { TokenProvider } from "../providers/token.provider.js";
-import { AccessTokenInvalidException } from "../exceptions/auth.exceptions.js";
+import { SessionService } from "../services/session.service.js";
+import { UserRepository } from "../repositories/user.repository.js";
+import { COOKIE_NAMES } from "../constants/auth.constants.js";
+import { CookieProvider } from "../providers/cookie.provider.js";
+import { UnauthorizedException } from "../exceptions/auth.exceptions.js";
 
 /**
- * authGuard — Express middleware.
- * Ожидает заголовок `Authorization: Bearer <accessToken>`, проверяет
- * подпись/срок действия JWT (без обращения к БД/Redis — access-токен
- * полностью stateless) и пробрасывает userId в req.
+ * authGuard — единственный источник истины об авторизации.
+ * Идентификатор пользователя берётся ТОЛЬКО из серверной сессии (Redis),
+ * пользователь перечитывается из БД на каждом запросе. Ни роль, ни email,
+ * ни id из тела/заголовков клиента не используются.
  */
-export const authGuard = (req, _res, next) => {
-  const header = req.headers.authorization;
-  const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
+export const authGuard = async (req, res, next) => {
+  const sid = req.cookies?.[COOKIE_NAMES.session];
+  const session = sid ? await SessionService.resolve(sid) : null;
 
-  if (!token) return next(new AccessTokenInvalidException());
-
-  try {
-    const payload = TokenProvider.verifyAccessToken(token);
-    req.userId = payload.sub;
-    next();
-  } catch {
-    next(new AccessTokenInvalidException());
+  if (!session) {
+    if (sid) CookieProvider.clearSession(res);
+    return next(new UnauthorizedException());
   }
+
+  const user = await UserRepository.findById(session.userId);
+  if (!user) {
+    await SessionService.destroy(sid);
+    CookieProvider.clearSession(res);
+    return next(new UnauthorizedException());
+  }
+
+  req.sid = sid;
+  req.user = user;
+  next();
 };

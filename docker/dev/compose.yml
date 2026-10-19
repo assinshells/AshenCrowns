@@ -1,9 +1,9 @@
-name: chat-dev
+name: ashen-crowns-dev
 
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: chat-postgres-dev
+    container_name: ashen-postgres-dev
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgre}
@@ -28,11 +28,11 @@ services:
       start_period: 5s
       retries: 10
     networks:
-      - chat-network
+      - ashen-network
 
   redis:
     image: redis:7-alpine
-    container_name: chat-redis-dev
+    container_name: ashen-redis-dev
     restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
@@ -44,13 +44,22 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - chat-network
+      - ashen-network
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: ashen-mailpit-dev
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    networks:
+      - ashen-network
 
   backend:
     build:
       context: ../../backend
       dockerfile: Dockerfile.dev
-    container_name: chat-backend-dev
+    container_name: ashen-backend-dev
     restart: unless-stopped
     env_file:
       - path: ../../backend/.env
@@ -60,6 +69,14 @@ services:
       PORT: ${BACKEND_PORT:-3000}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgre}:${POSTGRES_PASSWORD:-root}@postgres:5432/${POSTGRES_DB:-postgre}
       REDIS_URL: redis://redis:6379
+      CLIENT_URL: http://localhost:${FRONTEND_PORT:-5173}
+      # Только для разработки. В production секрет обязателен (см. docker/prod/compose.yml).
+      OTP_SECRET: ${OTP_SECRET:-dev-only-otp-secret-do-not-use-in-production-0123456789}
+      # Письма уходят в Mailpit (веб-интерфейс: http://localhost:8025)
+      EMAIL_TRANSPORT: smtp
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_FROM: "Ashen Crowns <no-reply@ashen.local>"
     ports:
       - "${BACKEND_PORT:-3000}:3000"
     volumes:
@@ -72,6 +89,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
       interval: 10s
@@ -79,17 +98,17 @@ services:
       start_period: 10s
       retries: 5
     networks:
-      - chat-network
+      - ashen-network
 
   frontend:
     build:
       context: ../../frontend
       dockerfile: Dockerfile.dev
-    container_name: chat-frontend-dev
+    container_name: ashen-frontend-dev
     restart: unless-stopped
     environment:
-      VITE_API_URL: http://localhost:${BACKEND_PORT:-3000}
-      VITE_SOCKET_URL: http://localhost:${BACKEND_PORT:-3000}
+      # Vite проксирует /api на backend: браузер видит единый origin.
+      VITE_PROXY_TARGET: http://backend:3000
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:
@@ -102,10 +121,10 @@ services:
       backend:
         condition: service_healthy
     networks:
-      - chat-network
+      - ashen-network
 
 networks:
-  chat-network:
+  ashen-network:
     driver: bridge
 
 volumes:

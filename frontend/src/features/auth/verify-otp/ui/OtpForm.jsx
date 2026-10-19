@@ -1,143 +1,122 @@
-import { useRef, useState } from "react";
-import { useVerifyOtpStore } from "@features/auth/verify-otp/model/useVerifyOtpStore.js";
+import { useEffect, useState } from "react";
+import { verifyOtpRequest, resendOtpRequest } from "@features/auth/verify-otp/api/verifyOtp.api.js";
+import { useRequest } from "@shared/lib/useRequest.js";
+import { OTP_LENGTH } from "@shared/constants/app.js";
+import { ErrorAlert } from "@shared/ui/ErrorAlert.jsx";
+import { Notice } from "@shared/ui/Notice.jsx";
+import { SubmitButton } from "@shared/ui/SubmitButton.jsx";
 
-export function OtpForm({ email, onSuccess, onBack }) {
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const inputRefs = useRef([]);
+/**
+ * Ввод одноразового кода — ОДНО поле (inputMode="numeric",
+ * autoComplete="one-time-code"): подходит для автозаполнения из SMS/почты
+ * и вставки целиком.
+ *
+ * Props:
+ *  purpose, email    — сценарий и (для публичных сценариев) email;
+ *  maskedEmail       — маска адреса, на который отправлен код;
+ *  initialCooldown   — секунд до разрешения повторной отправки;
+ *  onVerified(result)— код принят сервером.
+ */
+export function OtpForm({ purpose, email, maskedEmail, initialCooldown = 0, onVerified }) {
+  const [code, setCode] = useState("");
+  const [cooldown, setCooldown] = useState(initialCooldown);
+  const [resent, setResent] = useState(false);
+  const verify = useRequest();
+  const resend = useRequest();
 
-  const { loading, error, verify, clearError } = useVerifyOtpStore();
+  // Обратный отсчёт до возможности повторной отправки.
+  useEffect(() => {
+    if (cooldown <= 0) return undefined;
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
-  const handleChange = (index, value) => {
-    // Только цифры
-    const digit = value.replace(/\D/g, "").slice(-1);
-
-    if (!digit) {
-      const newOtp = [...otp];
-      newOtp[index] = "";
-      setOtp(newOtp);
-      return;
-    }
-
-    const newOtp = [...otp];
-    newOtp[index] = digit;
-
-    setOtp(newOtp);
-    clearError();
-
-    // Перейти к следующей ячейке
-    if (index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
+  const handleChange = (e) => {
+    setCode(e.target.value.replace(/\D/g, "").slice(0, OTP_LENGTH));
+    verify.clearError();
   };
 
-  const handleKeyDown = (index, e) => {
-    // Backspace — удалить текущую цифру
-    // Если ячейка пустая — перейти назад
-    if (e.key === "Backspace") {
-      if (!otp[index] && index > 0) {
-        inputRefs.current[index - 1]?.focus();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const result = await verify.run(() => verifyOtpRequest({ purpose, email, code }));
+    if (result) onVerified(result);
+  };
+
+  const handleResend = async () => {
+    setResent(false);
+    verify.clearError();
+    const result = await resend.run(async () => {
+      try {
+        return await resendOtpRequest({ purpose, email });
+      } catch (err) {
+        // Сервер — источник истины о паузе: при 429 берём остаток оттуда.
+        const retry = err.extra?.retryAfterSeconds;
+        if (err.code === "OTP_RESEND_COOLDOWN" && retry) setCooldown(retry);
+        throw err;
       }
-    }
-
-    // Стрелка влево
-    if (e.key === "ArrowLeft" && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-
-    // Стрелка вправо
-    if (e.key === "ArrowRight" && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e) => {
-    e.preventDefault();
-
-    const pastedCode = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, 6);
-
-    if (!pastedCode) return;
-
-    const newOtp = ["", "", "", "", "", ""];
-
-    pastedCode.split("").forEach((digit, index) => {
-      newOtp[index] = digit;
     });
-
-    setOtp(newOtp);
-    clearError();
-
-    // Фокус на последнюю заполненную ячейку
-    const focusIndex = Math.min(pastedCode.length, 5);
-    inputRefs.current[focusIndex]?.focus();
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const otpCode = otp.join("");
-
-    if (otpCode.length !== 6) {
-      return;
+    if (result) {
+      setCode("");
+      setResent(true);
+      setCooldown(result.resendAfterSeconds ?? 60);
     }
-
-    clearError();
-    verify({ email, otpCode }, onSuccess);
   };
-
-  const isComplete = otp.every(Boolean);
 
   return (
-    <>
-      {error && <p className="text-danger text-center mb-3">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="d-flex justify-content-between gap-2 mb-4">
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              ref={(element) => {
-                inputRefs.current[index] = element;
-              }}
-              type="text"
-              inputMode="numeric"
-              autoComplete={index === 0 ? "one-time-code" : "off"}
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleChange(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-              onPaste={handlePaste}
-              className="form-control text-center fw-bold"
-              style={{
-                width: "3rem",
-                height: "3.5rem",
-                fontSize: "1.5rem",
-                padding: 0,
-              }}
-              aria-label={`OTP digit ${index + 1}`}
-            />
-          ))}
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading || !isComplete}
-          className="btn btn-primary w-100 text-decoration-none rounded-4 fw-bold m-0"
-        >
-          {loading ? "Верифікація..." : "Верифікувати"}
-        </button>
-      </form>
-
+    <form onSubmit={handleSubmit} aria-busy={verify.loading}>
       <p>
+        Код отправлен на <strong>{maskedEmail}</strong>.
+      </p>
+
+      <ErrorAlert error={verify.error} />
+      {resend.error?.code !== "OTP_RESEND_COOLDOWN" && <ErrorAlert error={resend.error} />}
+      {resent && <Notice>Новый код отправлен.</Notice>}
+
+      <div className="mb-3">
+        <label htmlFor="otp" className="form-label">
+          Код подтверждения
+        </label>
+        <input
+          id="otp"
+          type="text"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9]*"
+          maxLength={OTP_LENGTH}
+          className="form-control form-control-lg text-center"
+          aria-describedby="otp-hint"
+          value={code}
+          onChange={handleChange}
+          autoFocus
+          required
+        />
+        <div id="otp-hint" className="form-text">
+          {OTP_LENGTH} цифр. Код действует 10 минут и может быть использован один раз.
+        </div>
+      </div>
+
+      <div className="d-grid mb-3">
+        <SubmitButton
+          loading={verify.loading}
+          loadingText="Проверяем…"
+          disabled={code.length !== OTP_LENGTH}
+        >
+          Подтвердить
+        </SubmitButton>
+      </div>
+
+      <div className="text-center">
         <button
           type="button"
-          onClick={onBack}
-          className="btn btn-outline-primary w-100 text-break rounded-4 fw-bold mt-4"
+          className="btn btn-link"
+          onClick={handleResend}
+          disabled={cooldown > 0 || resend.loading}
         >
-          Увійти
+          {cooldown > 0
+            ? `Отправить код повторно через ${cooldown} с`
+            : "Отправить код повторно"}
         </button>
-      </p>
-    </>
+      </div>
+    </form>
   );
 }

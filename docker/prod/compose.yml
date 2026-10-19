@@ -1,9 +1,9 @@
-name: chat-prod
+name: ashen-crowns-prod
 
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: chat-postgres
+    container_name: ashen-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgre}
@@ -22,12 +22,12 @@ services:
       start_period: 5s
       retries: 10
     networks:
-      - chat-network
+      - ashen-network
     # Not exposed on the host in production; only reachable by other services
 
   redis:
     image: redis:7-alpine
-    container_name: chat-redis
+    container_name: ashen-redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
@@ -38,13 +38,13 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - chat-network
+      - ashen-network
 
   backend:
     build:
       context: ../../backend
       dockerfile: Dockerfile
-    container_name: chat-backend
+    container_name: ashen-backend
     restart: unless-stopped
     env_file:
       - path: ../../backend/.env
@@ -54,6 +54,18 @@ services:
       PORT: ${BACKEND_PORT:-3000}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgre}:${POSTGRES_PASSWORD:-root}@postgres:5432/${POSTGRES_DB:-postgre}
       REDIS_URL: redis://redis:6379
+      # Публичный origin сайта (как его видит браузер), напр. https://ashen.example.com
+      CLIENT_URL: ${CLIENT_URL:?Укажите CLIENT_URL — публичный origin сайта}
+      # Перед backend стоит один reverse-proxy (nginx): нужно для корректного rate-limit по IP.
+      TRUST_PROXY: 1
+      OTP_SECRET: ${OTP_SECRET:?Укажите OTP_SECRET (openssl rand -hex 32)}
+      EMAIL_TRANSPORT: smtp
+      SMTP_HOST: ${SMTP_HOST:?Укажите SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:?Укажите SMTP_FROM}
     depends_on:
       postgres:
         condition: service_healthy
@@ -65,17 +77,14 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - chat-network
+      - ashen-network
     # Not exposed on the host in production; nginx reverse-proxies to it
 
   frontend:
     build:
       context: ../..
       dockerfile: frontend/Dockerfile
-      args:
-        VITE_API_URL: /api
-        VITE_SOCKET_URL: ""
-    container_name: chat-frontend
+    container_name: ashen-frontend
     restart: unless-stopped
     ports:
       - "${NGINX_PORT:-80}:80"
@@ -83,10 +92,10 @@ services:
       backend:
         condition: service_healthy
     networks:
-      - chat-network
+      - ashen-network
 
 networks:
-  chat-network:
+  ashen-network:
     driver: bridge
 
 volumes:

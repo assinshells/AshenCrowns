@@ -1,8 +1,5 @@
-import { apiClient } from "@shared/api/axios.js";
+import { http } from "@shared/api/http.js";
 
-/**
- * @param {{ login: string, password: string, email?: string, gender: "male"|"female"|"unknown" }} dto
- * @returns {Promise<{ success: boolean }>}
- */
+/** @returns {Promise<{ requiresEmailVerification: boolean, maskedEmail: string, resendAfterSeconds: number }>} */
 export const registerRequest = (dto) =>
-  apiClient.post("/api/auth/register", dto).then((r) => r.data);
+  http.post("/api/auth/register", dto).then((r) => r.data);

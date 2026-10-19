@@ -1,42 +1,21 @@
-import SimpleBar from "simplebar-react";
+import { APP_NAME } from "@shared/constants/app.js";
 
-export function AuthLayout({ title, subtitle, children }) {
+/** Макет публичных страниц (вход, регистрация, восстановление, OTP). Только сетка и компоненты Bootstrap. */
+export function AuthLayout({ title, description, children }) {
   return (
-    <div className="auth-layout">
-      <SimpleBar className="auth-scrollbar" autoHide={true}>
-        <div className="py-4">
-          <div className="container">
-            <div className="row justify-content-center">
-              <main className="col-12">
-                <div className="main-content">
-                  <div
-                    className="w-100 mx-auto"
-                    style={{ maxWidth: "24.5rem" }}
-                  >
-                    <div className="mb-5">
-                      <header>
-                        {subtitle && (
-                          <span className="d-block text-muted text-break">
-                            {subtitle}
-                          </span>
-                        )}
-
-                        <h4 className="mb-0">
-                          <span className="text-muted text-break">{title}</span>
-                        </h4>
-                      </header>
-                    </div>
-
-                    <div className="card p-4 rounded-4 shadow-sm mb-3">
-                      {children}
-                    </div>
-                  </div>
-                </div>
-              </main>
+    <main className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-12 col-sm-10 col-md-8 col-lg-5">
+          <p className="h3 text-center mb-4">{APP_NAME}</p>
+          <div className="card">
+            <div className="card-body">
+              <h1 className="h5 card-title">{title}</h1>
+              {description && <p className="text-body-secondary">{description}</p>}
+              {children}
             </div>
           </div>
         </div>
-      </SimpleBar>
-    </div>
+      </div>
+    </main>
   );
 }

@@ -1,101 +1,25 @@
-import { useEffect, useState } from "react";
-import { AUTH_SCREENS, APP_NAME } from "@shared/constants/auth.constants.js";
-import { Storage } from "@shared/lib/storage.js";
-import { refreshAccessToken } from "@shared/api/axios.js";
-
-import { LoginPage } from "@pages/LoginPage.jsx";
-import { RegisterPage } from "@pages/RegisterPage.jsx";
-import { ForgotPasswordPage } from "@pages/ForgotPasswordPage.jsx";
-import { VerifyOtpPage } from "@pages/VerifyOtpPage.jsx";
-import { ResetPasswordPage } from "@pages/ResetPasswordPage.jsx";
-import { HomePage } from "@pages/HomePage.jsx";
-
-import "@app/styles/index.css";
-
-const USER_KEY = "userLogin";
+import { useEffect } from "react";
+import { BrowserRouter } from "react-router-dom";
+import { AppRouter } from "@app/router/AppRouter.jsx";
+import { useSessionStore } from "@entities/session/model/useSessionStore.js";
+import { setUnauthorizedHandler } from "@shared/api/http.js";
+import { Spinner } from "@shared/ui/Spinner.jsx";
 
 export default function App() {
-  // accessToken живёt только в памяти (AuthSession) и не переживает
-  // перезагрузку страницы — поэтому при монтировании делаем "тихий"
-  // refresh: если у браузера есть валидная httpOnly refreshToken-cookie,
-  // сессия восстановится сама, без повторного логина.
-  const [booting, setBooting] = useState(true);
-  const [screen, setScreen] = useState(AUTH_SCREENS.LOGIN);
-  const [screenParams, setScreenParams] = useState({});
+  const status = useSessionStore((s) => s.status);
 
   useEffect(() => {
-    let cancelled = false;
-
-    refreshAccessToken()
-      .then(() => {
-        if (!cancelled) setScreen(AUTH_SCREENS.APP);
-      })
-      .catch(() => {
-        // Нет валидной cookie-сессии — остаёмся на экране логина.
-      })
-      .finally(() => {
-        if (!cancelled) setBooting(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    // Любой 401 на защищённом запросе = сессия недействительна → защищённые маршруты закроются.
+    setUnauthorizedHandler(() => useSessionStore.getState().clear());
+    useSessionStore.getState().load();
   }, []);
 
-  const navigate = (newScreen, params = {}) => {
-    setScreen(newScreen);
-    setScreenParams(params);
-  };
+  // Пока сервер не подтвердил состояние сессии, никакие данные не показываются.
+  if (status === "loading") return <Spinner />;
 
-  const handleLoginSuccess = (login) => {
-    Storage.set(USER_KEY, login);
-    navigate(AUTH_SCREENS.APP);
-  };
-
-  const handleLogout = () => {
-    Storage.remove(USER_KEY);
-    navigate(AUTH_SCREENS.LOGIN);
-  };
-
-  const currentLogin = Storage.get(USER_KEY) ?? "anonymous";
-
-  if (booting) {
-    return (
-      <div
-        className="d-flex align-items-center justify-content-center"
-        style={{ minHeight: "100vh" }}
-      >
-        <span className="text-muted">{APP_NAME}…</span>
-      </div>
-    );
-  }
-
-  switch (screen) {
-    case AUTH_SCREENS.REGISTER:
-      return <RegisterPage onNavigate={navigate} />;
-
-    case AUTH_SCREENS.FORGOT:
-      return <ForgotPasswordPage onNavigate={navigate} />;
-
-    case AUTH_SCREENS.OTP:
-      return (
-        <VerifyOtpPage onNavigate={navigate} email={screenParams.email ?? ""} />
-      );
-
-    case AUTH_SCREENS.RESET:
-      return (
-        <ResetPasswordPage
-          onNavigate={navigate}
-          verifiedToken={screenParams.verifiedToken}
-        />
-      );
-
-    case AUTH_SCREENS.APP:
-      return <HomePage login={currentLogin} onLogout={handleLogout} />;
-
-    default:
-      return (
-        <LoginPage onNavigate={navigate} onLoginSuccess={handleLoginSuccess} />
-      );
-  }
+  return (
+    <BrowserRouter>
+      <AppRouter />
+    </BrowserRouter>
+  );
 }

@@ -1,9 +1,25 @@
 import { pool } from "../config/database.js";
 
+const COLUMNS =
+  "id, login, email, password_hash, avatar_path, email_verified_at, created_at";
+
+const UNIQUE_VIOLATION = "23505";
+
+/**
+ * Определяет, какой из уникальных индексов нарушен, по имени ограничения.
+ * Имена задаются в docker/postgres/init.sql.
+ */
+const conflictField = (err) => {
+  if (err?.code !== UNIQUE_VIOLATION) return null;
+  if (String(err.constraint).includes("email")) return "email";
+  if (String(err.constraint).includes("login")) return "login";
+  return "unknown";
+};
+
 export const UserRepository = {
   async findByLogin(login) {
     const { rows } = await pool.query(
-      "SELECT id, login, email, password_hash, gender FROM users WHERE login = $1",
+      `SELECT ${COLUMNS} FROM users WHERE lower(login) = lower($1)`,
       [login],
     );
     return rows[0] ?? null;
@@ -11,7 +27,7 @@ export const UserRepository = {
 
   async findByEmail(email) {
     const { rows } = await pool.query(
-      "SELECT id, login, email, password_hash, gender FROM users WHERE email = $1",
+      `SELECT ${COLUMNS} FROM users WHERE lower(email) = lower($1)`,
       [email],
     );
     return rows[0] ?? null;
@@ -19,56 +35,57 @@ export const UserRepository = {
 
   async findById(id) {
     const { rows } = await pool.query(
-      "SELECT id, login, email, password_hash, gender FROM users WHERE id = $1",
+      `SELECT ${COLUMNS} FROM users WHERE id = $1`,
       [id],
     );
     return rows[0] ?? null;
   },
 
-  async create({ login, passwordHash, email, gender }) {
-    const client = await pool.connect();
+  /**
+   * @returns {Promise<{ user: object|null, conflict: "login"|"email"|"unknown"|null }>}
+   * Гонки регистрации разруливает UNIQUE-индекс, а не предварительный SELECT.
+   */
+  async create({ login, email, passwordHash, emailVerified }) {
     try {
-      await client.query("BEGIN");
-
-      const loginCheck = await client.query(
-        "SELECT id FROM users WHERE login = $1 FOR UPDATE",
-        [login],
+      const { rows } = await pool.query(
+        `INSERT INTO users (login, email, password_hash, email_verified_at)
+         VALUES ($1, $2, $3, CASE WHEN $4::boolean THEN NOW() ELSE NULL END)
+         RETURNING ${COLUMNS}`,
+        [login, email, passwordHash, emailVerified],
       );
-      if (loginCheck.rows.length > 0) {
-        await client.query("ROLLBACK");
-        return null;
-      }
-
-      if (email) {
-        const emailCheck = await client.query(
-          "SELECT id FROM users WHERE email = $1 FOR UPDATE",
-          [email],
-        );
-        if (emailCheck.rows.length > 0) {
-          await client.query("ROLLBACK");
-          return null;
-        }
-      }
-
-      const { rows } = await client.query(
-        "INSERT INTO users (login, password_hash, email, gender) VALUES ($1, $2, $3, $4) RETURNING id",
-        [login, passwordHash, email ?? null, gender],
-      );
-
-      await client.query("COMMIT");
-      return rows[0];
+      return { user: rows[0], conflict: null };
     } catch (err) {
-      await client.query("ROLLBACK");
+      const conflict = conflictField(err);
+      if (conflict) return { user: null, conflict };
       throw err;
-    } finally {
-      client.release();
     }
   },
 
+  async markEmailVerified(id) {
+    await pool.query(
+      "UPDATE users SET email_verified_at = COALESCE(email_verified_at, NOW()), updated_at = NOW() WHERE id = $1",
+      [id],
+    );
+  },
+
   async updatePassword(id, passwordHash) {
-    await pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [
-      passwordHash,
-      id,
-    ]);
+    await pool.query(
+      "UPDATE users SET password_hash = $1, password_changed_at = NOW(), updated_at = NOW() WHERE id = $2",
+      [passwordHash, id],
+    );
+  },
+
+  /** @returns {Promise<boolean>} false, если email уже занят другим аккаунтом */
+  async updateEmail(id, email) {
+    try {
+      await pool.query(
+        "UPDATE users SET email = $1, email_verified_at = NOW(), updated_at = NOW() WHERE id = $2",
+        [email, id],
+      );
+      return true;
+    } catch (err) {
+      if (conflictField(err) === "email") return false;
+      throw err;
+    }
   },
 };

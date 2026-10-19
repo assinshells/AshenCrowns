@@ -2,17 +2,31 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
+import { readFileSync } from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(
+  readFileSync(path.resolve(__dirname, "package.json"), "utf-8"),
+);
+
+// Куда проксировать /api в dev-режиме. В docker/dev/compose.yml = http://backend:3000.
+// Благодаря прокси браузер видит frontend и API как один origin:
+// cookie сессии и CSRF работают без CORS.
+const apiTarget = process.env.VITE_PROXY_TARGET || "http://localhost:3000";
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   server: {
     port: 5173,
+    proxy: {
+      "/api": { target: apiTarget, changeOrigin: false },
+    },
     watch: {
-      // Native filesystem events don't reliably propagate through Docker
-      // Desktop's bind-mount virtualization (especially on Windows/macOS).
-      // Polling guarantees changes are picked up regardless of host OS.
+      // Нативные события ФС ненадёжны через bind-mount Docker Desktop
+      // (Windows/macOS) — polling гарантирует подхват изменений.
       usePolling: true,
       interval: 300,
     },
@@ -26,5 +40,9 @@ export default defineConfig({
       "@pages": path.resolve(__dirname, "src/pages"),
       "@widgets": path.resolve(__dirname, "src/widgets"),
     },
+  },
+  test: {
+    environment: "jsdom",
+    include: ["src/**/*.test.{js,jsx}"],
   },
 });

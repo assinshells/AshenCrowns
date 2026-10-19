@@ -1,10 +1,5 @@
-import { apiClient } from "@shared/api/axios.js";
+import { http } from "@shared/api/http.js";
 
-/**
- * @param {{ login: string, password: string }} dto
- * @returns {Promise<{ accessToken: string, csrfToken: string }>}
- * refreshToken is set as an httpOnly cookie by the backend — it's never
- * part of the response body.
- */
+/** Сервер выставляет httpOnly-cookie сессии; в теле — только публичный профиль. */
 export const loginRequest = (dto) =>
-  apiClient.post("/api/auth/login", dto).then((r) => r.data);
+  http.post("/api/auth/login", dto).then((r) => r.data.user);

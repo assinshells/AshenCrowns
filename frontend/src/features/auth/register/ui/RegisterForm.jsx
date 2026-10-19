@@ -1,93 +1,90 @@
 import { useState } from "react";
-import { useRegisterStore } from "@features/auth/register/model/useRegisterStore.js";
-import { GENDER_OPTIONS } from "@shared/constants/auth.constants.js";
+import { Link } from "react-router-dom";
+import { registerRequest } from "@features/auth/register/api/register.api.js";
+import { useRequest } from "@shared/lib/useRequest.js";
+import { ApiError } from "@shared/api/http.js";
+import { ROUTES } from "@shared/constants/routes.js";
+import { LOGIN_RULES, PASSWORD_RULES } from "@shared/constants/app.js";
+import { TextField } from "@shared/ui/TextField.jsx";
+import { ErrorAlert } from "@shared/ui/ErrorAlert.jsx";
+import { SubmitButton } from "@shared/ui/SubmitButton.jsx";
 
-export function RegisterForm({ onSuccess, onBack }) {
+/** onSuccess({ email, requiresEmailVerification, maskedEmail, resendAfterSeconds }) */
+export function RegisterForm({ onSuccess }) {
   const [login, setLogin] = useState("");
-  const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
-  const [gender, setGender] = useState("");
-  const { loading, error, register, clearError } = useRegisterStore();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const { loading, error, run, setError } = useRequest();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    clearError();
-    register({ login, password, email, gender }, onSuccess);
+    if (password !== confirmPassword) {
+      setError(new ApiError("Пароли не совпадают"));
+      return;
+    }
+    const result = await run(() =>
+      registerRequest({ login, email, password, confirmPassword }),
+    );
+    if (result) onSuccess({ email, ...result });
   };
 
   return (
-    <>
-      {error && <p className="text-danger text-center mb-3">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <input
-            id="loginInput"
-            type="text"
-            className="form-control"
-            placeholder="Введіть нікнейм"
-            value={login}
-            onChange={(e) => setLogin(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <input
-            id="passwordInput"
-            type="password"
-            className="form-control"
-            placeholder="Введіть пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <input
-            id="emailInput"
-            type="email"
-            className="form-control"
-            placeholder="Введіть пошту (опціонально)"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <label className="mb-2 text-muted small">Як ви себе ідентифікуєте?</label>
-        <div className="d-flex align-items-center mb-3 px-0">
-          {GENDER_OPTIONS.map((option) => (
-            <div className="form-check me-3" key={option.value}>
-              <input
-                className="form-check-input"
-                type="radio"
-                name="gender"
-                id={`gender-${option.value}`}
-                value={option.value}
-                checked={gender === option.value}
-                onChange={(e) => setGender(e.target.value)}
-                required
-              />
-              <label className="form-check-label" htmlFor={`gender-${option.value}`}>
-                {option.label}
-              </label>
-            </div>
-          ))}
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn btn-primary w-100 text-decoration-none rounded-4 fw-bold m-0"
-        >
-          {loading ? "Реєструємо..." : "Зареєструватися"}
-        </button>
-      </form>
-      <p>
-        <button
-          type="button"
-          onClick={onBack}
-          className="btn btn-outline-primary w-100 text-break rounded-4 fw-bold mt-4"
-        >
-          Увійти
-        </button>
+    <form onSubmit={handleSubmit} aria-busy={loading}>
+      <ErrorAlert error={error} />
+
+      <TextField
+        id="login"
+        label="Логин"
+        hint={LOGIN_RULES.hint}
+        type="text"
+        autoComplete="username"
+        value={login}
+        onChange={(e) => setLogin(e.target.value)}
+        minLength={LOGIN_RULES.min}
+        maxLength={LOGIN_RULES.max}
+        pattern={LOGIN_RULES.pattern}
+        required
+      />
+      <TextField
+        id="email"
+        label="Email"
+        type="email"
+        autoComplete="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+      <TextField
+        id="password"
+        label="Пароль"
+        hint={PASSWORD_RULES.hint}
+        type="password"
+        autoComplete="new-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        minLength={PASSWORD_RULES.min}
+        maxLength={PASSWORD_RULES.max}
+        required
+      />
+      <TextField
+        id="confirmPassword"
+        label="Подтверждение пароля"
+        type="password"
+        autoComplete="new-password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        required
+      />
+
+      <div className="d-grid mb-3">
+        <SubmitButton loading={loading} loadingText="Регистрируем…">
+          Зарегистрироваться
+        </SubmitButton>
+      </div>
+      <p className="mb-0 text-center">
+        Уже есть аккаунт? <Link to={ROUTES.login}>Войти</Link>
       </p>
-    </>
+    </form>
   );
 }

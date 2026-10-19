@@ -1,18 +1,26 @@
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "@widgets/layouts";
 import { ResetPasswordForm } from "@features/auth/reset-password/ui/ResetPasswordForm.jsx";
-import { AUTH_SCREENS } from "@shared/constants/auth.constants.js";
-import { APP_NAME } from "@shared/constants/auth.constants.js";
+import { ROUTES } from "@shared/constants/routes.js";
 
-export function ResetPasswordPage({ onNavigate, verifiedToken }) {
+export function ResetPasswordPage() {
+  const navigate = useNavigate();
+  const resetToken = useLocation().state?.resetToken;
+
+  // Токен восстановления выдаётся только после подтверждения кода и живёт в
+  // state навигации (не в URL — не попадает в историю, логи и Referer).
+  if (!resetToken) return <Navigate to={ROUTES.forgotPassword} replace />;
+
   return (
-    <AuthLayout
-      title={APP_NAME}
-      subtitle="Код підтверджено. Лишилось малого — придумайте новий пароль і спробуйте його запам'ятати."
-    >
+    <AuthLayout title="Новый пароль" description="Код подтверждён. Задайте новый пароль.">
       <ResetPasswordForm
-        verifiedToken={verifiedToken}
-        onSuccess={() => onNavigate(AUTH_SCREENS.LOGIN)}
-        onBack={() => onNavigate(AUTH_SCREENS.LOGIN)}
+        resetToken={resetToken}
+        onSuccess={() =>
+          navigate(ROUTES.login, {
+            replace: true,
+            state: { notice: "Пароль изменён. Войдите, используя новый пароль." },
+          })
+        }
       />
     </AuthLayout>
   );

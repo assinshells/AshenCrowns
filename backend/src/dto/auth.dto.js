@@ -1,81 +1,53 @@
-/**
- * DTO — Data Transfer Objects.
- * Используются для явного описания входящих и исходящих данных.
- * Все поля типизированы через JSDoc.
- */
+import { normalizeEmail } from "../utils/email.util.js";
 
 /**
- * @typedef {Object} LoginRequestDto
- * @property {string} login
- * @property {string} password
+ * DTO — нормализация входящих данных ПОСЛЕ валидации.
+ * Валидаторы гарантируют типы, поэтому здесь безопасно вызывать строковые методы.
  */
 
-/**
- * @typedef {Object} RegisterRequestDto
- * @property {string} login
- * @property {string} password
- * @property {string|undefined} email
- * @property {"male"|"female"|"unknown"} gender
- */
-
-/**
- * @typedef {Object} ForgotPasswordDto
- * @property {string} email
- */
-
-/**
- * @typedef {Object} VerifyOtpDto
- * @property {string} email
- * @property {string} otpCode
- */
-
-/**
- * @typedef {Object} ResetPasswordDto
- * @property {string} verifiedToken
- * @property {string} password
- * @property {string} confirmPassword
- */
-
-/**
- * @typedef {Object} AuthResponseDto
- * @property {boolean} success
- * @property {string|undefined} accessToken
- * @property {string|undefined} csrfToken
- * @property {string|undefined} verifiedToken
- *
- * Note: refreshToken is intentionally NOT part of the response body —
- * it's set as an httpOnly cookie by CookieProvider and never exposed to JS.
- */
-
-/**
- * @typedef {Object} ErrorResponseDto
- * @property {boolean} success
- * @property {{ code: string, message: string, details?: string[] }} error
- */
-
-export const toLoginRequestDto = (body) => ({
-  login: body.login,
-  password: body.password,
+export const toRegisterDto = (b) => ({
+  login: b.login.trim(),
+  email: normalizeEmail(b.email),
+  password: b.password,
 });
 
-export const toRegisterRequestDto = (body) => ({
-  login: body.login,
-  password: body.password,
-  email: body.email || undefined,
-  gender: body.gender,
+export const toLoginDto = (b) => ({
+  email: normalizeEmail(b.email),
+  password: b.password,
 });
 
-export const toForgotPasswordDto = (body) => ({
-  email: body.email,
+export const toForgotPasswordDto = (b) => ({ email: normalizeEmail(b.email) });
+
+export const toVerifyOtpDto = (b) => ({
+  email: normalizeEmail(b.email),
+  code: b.code,
+  purpose: b.purpose,
 });
 
-export const toVerifyOtpDto = (body) => ({
-  email: body.email,
-  otpCode: body.otpCode,
+export const toResendOtpDto = (b) => ({
+  email: normalizeEmail(b.email),
+  purpose: b.purpose,
 });
 
-export const toResetPasswordDto = (body) => ({
-  verifiedToken: body.verifiedToken,
-  password: body.password,
-  confirmPassword: body.confirmPassword,
+export const toResetPasswordDto = (b) => ({
+  resetToken: b.resetToken,
+  password: b.password,
+});
+
+export const toPasswordChangeDto = (b) => ({
+  currentPassword: b.currentPassword,
+  newPassword: b.newPassword,
+});
+
+export const toEmailChangeDto = (b) => ({
+  currentPassword: b.currentPassword,
+  newEmail: normalizeEmail(b.newEmail),
+});
+
+/** Публичное представление пользователя: без хеша и без полного email. */
+export const toPublicUser = (user, maskEmail) => ({
+  id: user.id,
+  login: user.login,
+  maskedEmail: maskEmail(user.email),
+  avatarPath: user.avatar_path,
 });

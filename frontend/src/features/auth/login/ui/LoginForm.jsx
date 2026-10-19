@@ -1,71 +1,71 @@
 import { useState } from "react";
-import { useLoginStore } from "@features/auth/login/model/useLoginStore.js";
+import { Link } from "react-router-dom";
+import { loginRequest } from "@features/auth/login/api/login.api.js";
+import { useRequest } from "@shared/lib/useRequest.js";
+import { ROUTES } from "@shared/constants/routes.js";
+import { TextField } from "@shared/ui/TextField.jsx";
+import { ErrorAlert } from "@shared/ui/ErrorAlert.jsx";
+import { SubmitButton } from "@shared/ui/SubmitButton.jsx";
 
 /**
- * LoginForm — тупой компонент.
- * onSuccess(login) — вызывается с логином после успешного входа.
+ * onSuccess(user)                   — вход выполнен (сессия создана сервером);
+ * onUnverified({ email, maskedEmail }) — пароль верный, но email ещё не подтверждён.
  */
-export function LoginForm({ onSuccess, onRegister, onForgot }) {
-  const [login, setLogin] = useState("");
+export function LoginForm({ onSuccess, onUnverified }) {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { loading, error, login: doLogin, clearError } = useLoginStore();
+  const { loading, error, run } = useRequest();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    clearError();
-    doLogin({ login, password }, () => onSuccess(login));
+    const user = await run(async () => {
+      try {
+        return await loginRequest({ email, password });
+      } catch (err) {
+        if (err.code === "EMAIL_NOT_VERIFIED") {
+          onUnverified({ email, maskedEmail: err.extra.maskedEmail });
+          return null;
+        }
+        throw err;
+      }
+    });
+    if (user) onSuccess(user);
   };
 
   return (
-    <>
-      {error && <p className="text-danger text-center mb-3">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <input
-            id="loginInput"
-            type="text"
-            className="form-control"
-            placeholder="Введіть нікнейм"
-            value={login}
-            onChange={(e) => setLogin(e.target.value)}
-            required
-          />
-        </div>
+    <form onSubmit={handleSubmit} aria-busy={loading}>
+      <ErrorAlert error={error} />
 
-        <div className="mb-4">
-          <input
-            id="passwordInput"
-            type="password"
-            className="form-control"
-            placeholder="Введіть пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn btn-primary w-100 text-decoration-none rounded-4 fw-bold m-0"
-        >
-          {loading ? "Заходимо..." : "Увійти"}
-        </button>
-      </form>
-      <button
-        type="button"
-        onClick={onForgot}
-        className="btn btn-outline-primary w-100 text-break rounded-4 fw-bold mt-3"
-      >
-        Забули пароль?
-      </button>
+      <TextField
+        id="email"
+        label="Email"
+        type="email"
+        autoComplete="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+      <TextField
+        id="password"
+        label="Пароль"
+        type="password"
+        autoComplete="current-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
 
-      <button
-        type="button"
-        onClick={onRegister}
-        className="btn btn-outline-primary w-100 text-break rounded-4 fw-bold mt-4"
-      >
-        Зареєструватися
-      </button>
-    </>
+      <div className="d-grid mb-3">
+        <SubmitButton loading={loading} loadingText="Входим…">
+          Войти
+        </SubmitButton>
+      </div>
+      <p className="mb-1 text-center">
+        <Link to={ROUTES.forgotPassword}>Забыли пароль?</Link>
+      </p>
+      <p className="mb-0 text-center">
+        Нет аккаунта? <Link to={ROUTES.register}>Зарегистрироваться</Link>
+      </p>
+    </form>
   );
 }

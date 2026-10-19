@@ -1,48 +1,46 @@
 import { useState } from "react";
-import { useForgotPasswordStore } from "@features/auth/forgot-password/model/useForgotPasswordStore.js";
+import { Link } from "react-router-dom";
+import { forgotPasswordRequest } from "@features/auth/forgot-password/api/forgotPassword.api.js";
+import { useRequest } from "@shared/lib/useRequest.js";
+import { ROUTES } from "@shared/constants/routes.js";
+import { TextField } from "@shared/ui/TextField.jsx";
+import { ErrorAlert } from "@shared/ui/ErrorAlert.jsx";
+import { SubmitButton } from "@shared/ui/SubmitButton.jsx";
 
-export function ForgotPasswordForm({ onSuccess, onBack }) {
+/** onSuccess({ email, maskedEmail, resendAfterSeconds }) */
+export function ForgotPasswordForm({ onSuccess }) {
   const [email, setEmail] = useState("");
-  const { loading, error, submit, clearError } = useForgotPasswordStore();
+  const { loading, error, run } = useRequest();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    clearError();
-    submit({ email }, () => onSuccess(email));
+    const result = await run(() => forgotPasswordRequest({ email }));
+    if (result) onSuccess({ email, ...result });
   };
 
   return (
-    <>
-      {error && <p className="text-danger text-center mb-3">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <input
-            id="emailInput"
-            type="email"
-            className="form-control"
-            placeholder="Введіть пошту"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn btn-primary w-100 text-decoration-none rounded-4 fw-bold m-0"
-        >
-          {loading ? "Відправляємо..." : "Відправити код"}
-        </button>
-      </form>
-      <p>
-        <button
-          type="button"
-          onClick={onBack}
-          className="btn btn-outline-primary w-100 text-break rounded-4 fw-bold mt-4"
-        >
-          Увійти
-        </button>
+    <form onSubmit={handleSubmit} aria-busy={loading}>
+      <ErrorAlert error={error} />
+
+      <TextField
+        id="email"
+        label="Email"
+        hint="Если аккаунт с таким адресом существует, мы отправим на него код для восстановления пароля."
+        type="email"
+        autoComplete="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+
+      <div className="d-grid mb-3">
+        <SubmitButton loading={loading} loadingText="Отправляем…">
+          Отправить инструкцию
+        </SubmitButton>
+      </div>
+      <p className="mb-0 text-center">
+        <Link to={ROUTES.login}>Вернуться ко входу</Link>
       </p>
-    </>
+    </form>
   );
 }

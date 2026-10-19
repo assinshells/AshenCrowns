@@ -1,60 +1,70 @@
 import { useState } from "react";
-import { useResetPasswordStore } from "@features/auth/reset-password/model/useResetPasswordStore.js";
+import { Link } from "react-router-dom";
+import { resetPasswordRequest } from "@features/auth/reset-password/api/resetPassword.api.js";
+import { useRequest } from "@shared/lib/useRequest.js";
+import { ApiError } from "@shared/api/http.js";
+import { ROUTES } from "@shared/constants/routes.js";
+import { PASSWORD_RULES } from "@shared/constants/app.js";
+import { TextField } from "@shared/ui/TextField.jsx";
+import { ErrorAlert } from "@shared/ui/ErrorAlert.jsx";
+import { SubmitButton } from "@shared/ui/SubmitButton.jsx";
 
-export function ResetPasswordForm({ verifiedToken, onSuccess, onBack }) {
+export function ResetPasswordForm({ resetToken, onSuccess }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const { loading, error, reset, clearError } = useResetPasswordStore();
+  const { loading, error, run, setError } = useRequest();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    clearError();
-    reset({ verifiedToken, password, confirmPassword }, onSuccess);
+    if (password !== confirmPassword) {
+      setError(new ApiError("Пароли не совпадают"));
+      return;
+    }
+    const result = await run(() =>
+      resetPasswordRequest({ resetToken, password, confirmPassword }),
+    );
+    if (result) onSuccess();
   };
 
   return (
-    <>
-      {error && <p className="text-danger text-center mb-3">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <input
-            id="passwordInput"
-            type="password"
-            className="form-control"
-            placeholder="Введіть новий пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <input
-            id="confirmPasswordInput"
-            type="password"
-            className="form-control"
-            placeholder="Повторити пароль"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn btn-primary w-100 text-decoration-none rounded-4 fw-bold m-0"
-        >
-          {loading ? "Зберігаємо..." : "Зберегти"}
-        </button>
-      </form>
-      <p>
-        <button
-          type="button"
-          onClick={onBack}
-          className="btn btn-outline-primary w-100 text-break rounded-4 fw-bold mt-4"
-        >
-          Увійти
-        </button>
+    <form onSubmit={handleSubmit} aria-busy={loading}>
+      <ErrorAlert error={error} />
+      {error?.code === "RESET_TOKEN_INVALID" && (
+        <p>
+          <Link to={ROUTES.forgotPassword}>Запросить восстановление заново</Link>
+        </p>
+      )}
+
+      <TextField
+        id="password"
+        label="Новый пароль"
+        hint={PASSWORD_RULES.hint}
+        type="password"
+        autoComplete="new-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        minLength={PASSWORD_RULES.min}
+        maxLength={PASSWORD_RULES.max}
+        required
+      />
+      <TextField
+        id="confirmPassword"
+        label="Подтверждение пароля"
+        type="password"
+        autoComplete="new-password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        required
+      />
+
+      <div className="d-grid mb-3">
+        <SubmitButton loading={loading} loadingText="Сохраняем…">
+          Сохранить пароль
+        </SubmitButton>
+      </div>
+      <p className="mb-0 text-center">
+        <Link to={ROUTES.login}>Вернуться ко входу</Link>
       </p>
-    </>
+    </form>
   );
 }

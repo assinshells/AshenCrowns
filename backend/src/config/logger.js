@@ -37,7 +37,9 @@ const fileFormat = winston.format.combine(
   winston.format.json()
 );
 
-const currentLevel = process.env.NODE_ENV === 'production' ? 'warn' : 'debug';
+const currentLevel =
+  process.env.LOG_LEVEL ||
+  (process.env.NODE_ENV === 'production' ? 'warn' : 'debug');
 
 const logger = winston.createLogger({
   levels,
