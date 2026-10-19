@@ -44,7 +44,7 @@ export function AppHeader() {
               </li>
             </ul>
 
-            <div className="d-flex align-items-center gap-2">
+            <div className="d-flex align-items-center gap-2 py-2 py-md-0">
               <UserAvatar src={user?.avatarPath} />
               <span className="navbar-text">{user?.login}</span>
               <LogoutButton />

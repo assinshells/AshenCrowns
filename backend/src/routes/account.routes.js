@@ -12,6 +12,7 @@ router.post("/password/request", AccountController.requestPasswordChange);
 router.post("/password/confirm", AccountController.confirmPasswordChange);
 router.post("/email/request", AccountController.requestEmailChange);
 router.post("/email/confirm", AccountController.confirmEmailChange);
+router.post("/delete", AccountController.deleteAccount);
 router.post("/otp/resend", AccountController.resendCode);
 
 export default router;

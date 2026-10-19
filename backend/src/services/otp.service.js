@@ -1,6 +1,7 @@
 import { OtpRepository } from "../repositories/otp.repository.js";
 import { OtpProvider } from "../providers/otp.provider.js";
 import { EmailAdapter } from "../adapters/email.adapter.js";
+import { OTP_PURPOSES } from "../constants/auth.constants.js";
 import { authConfig } from "../config/auth.config.js";
 import logger from "../config/logger.js";
 import {
@@ -124,6 +125,15 @@ export const OtpService = {
     if (!won) throw new OtpExpiredException();
 
     return rec.payload;
+  },
+
+  /** Сбрасывает ожидающие коды операций авторизованного пользователя (например, при удалении аккаунта). */
+  async discardAllForSubject(subject) {
+    await Promise.all(
+      [OTP_PURPOSES.CHANGE_PASSWORD, OTP_PURPOSES.CHANGE_EMAIL].map((purpose) =>
+        OtpRepository.consume(purpose, subject),
+      ),
+    );
   },
 
   async createResetToken(userId) {

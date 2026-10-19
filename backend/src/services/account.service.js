@@ -127,6 +127,22 @@ export const AccountService = {
     return { maskedEmail: maskEmail(newEmail) };
   },
 
+  // ── Удаление аккаунта: подтверждение текущим паролем ─────────────────────
+  async deleteAccount(user, { currentPassword }) {
+    await assertCurrentPassword(user, currentPassword);
+
+    await UserRepository.deleteById(user.id);
+
+    // Все сессии и «хвосты» в Redis (блокировка входа, ожидающие коды).
+    await SessionService.destroyAllForUser(user.id);
+    await LoginLock.clear(user.email.toLowerCase());
+    await OtpService.discardAllForSubject(subjectOf(user.id));
+
+    EmailAdapter.sendAccountDeleted(user.email).catch((err) =>
+      logger.error(`Account deletion notice delivery failed: ${err.message}`),
+    );
+  },
+
   // ── Повторная отправка кода для ожидающей операции ───────────────────────
   async resendCode(user, { purpose }) {
     const subject = subjectOf(user.id);

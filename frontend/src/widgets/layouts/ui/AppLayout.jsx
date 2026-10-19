@@ -13,7 +13,7 @@ export function AppLayout() {
           <aside className="col-md-3 col-lg-2 border-end py-3 d-none d-md-block">
             <AppSidebar />
           </aside>
-          <main className="col-12 col-md-9 col-lg-10 py-3">
+          <main className="col-12 col-md-9 col-lg-10 py-3 py-md-4 overflow-x-hidden">
             <Outlet />
           </main>
         </div>

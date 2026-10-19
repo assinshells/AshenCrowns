@@ -8,6 +8,7 @@ import {
   validateEmailChangeRequest,
   validateConfirmCodeRequest,
   validateAccountResendRequest,
+  validateAccountDeleteRequest,
 } from "../validators/auth.validator.js";
 import { CookieProvider } from "../providers/cookie.provider.js";
 import { HTTP_STATUS } from "../constants/auth.constants.js";
@@ -48,6 +49,16 @@ export const AccountController = {
       code: req.body.code,
     });
     res.status(HTTP_STATUS.OK).json({ success: true, ...result });
+  },
+
+  deleteAccount: async (req, res) => {
+    validateAccountDeleteRequest(req.body);
+    await AccountService.deleteAccount(req.user, {
+      currentPassword: req.body.currentPassword,
+    });
+    CookieProvider.clearSession(res);
+    CookieProvider.clearCsrf(res);
+    res.status(HTTP_STATUS.OK).json({ success: true });
   },
 
   resendCode: async (req, res) => {

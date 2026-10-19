@@ -226,3 +226,36 @@ test("клиент не может подменить userId/email в теле �
   const rowB = (await ctx.pool.query("SELECT email FROM users WHERE login=$1", [b.user.login])).rows[0];
   assert.equal(rowB.email, b.user.email, "аккаунт B не затронут");
 });
+
+// ── Удаление аккаунта ────────────────────────────────────────────────────
+test("удаление аккаунта: неверный пароль → 400, аккаунт жив; верный → удалён, сессии завершены", async () => {
+  const { client, user } = await registerAndLogin(ctx);
+  const other = ctx.newClient();
+  await other.post("/api/auth/login", { email: user.email, password: user.password });
+
+  const wrong = await client.post("/api/account/delete", { currentPassword: "Wrong_Password1" });
+  assert.equal(wrong.status, 400);
+  assert.equal(wrong.body.error.code, "CURRENT_PASSWORD_WRONG");
+  assert.equal((await client.get("/api/auth/me")).status, 200);
+
+  const empty = await client.post("/api/account/delete", {});
+  assert.equal(empty.status, 400);
+
+  const ok = await client.post("/api/account/delete", { currentPassword: user.password });
+  assert.equal(ok.status, 200);
+  assert.equal(client.cookie("ac_sid"), undefined, "cookie сессии очищена");
+
+  const rows = (await ctx.pool.query("SELECT 1 FROM users WHERE email=$1", [user.email])).rows;
+  assert.equal(rows.length, 0, "запись удалена из БД");
+  assert.equal((await client.get("/api/auth/me")).status, 401);
+  assert.equal((await other.get("/api/auth/me")).status, 401, "другая сессия завершена");
+
+  const fresh = ctx.newClient();
+  assert.equal((await fresh.post("/api/auth/login", { email: user.email, password: user.password })).status, 401);
+});
+
+test("удаление аккаунта требует авторизации", async () => {
+  const anon = ctx.newClient();
+  const res = await anon.post("/api/account/delete", { currentPassword: VALID_PASSWORD });
+  assert.equal(res.status, 401);
+});

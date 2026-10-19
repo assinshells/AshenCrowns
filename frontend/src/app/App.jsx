@@ -3,6 +3,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AppRouter } from "@app/router/AppRouter.jsx";
 import { useSessionStore } from "@entities/session/model/useSessionStore.js";
 import { setUnauthorizedHandler } from "@shared/api/http.js";
+import { AppScroll } from "@shared/ui/AppScroll.jsx";
 import { Spinner } from "@shared/ui/Spinner.jsx";
 
 export default function App() {
@@ -19,7 +20,9 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <AppRouter />
+      <AppScroll>
+        <AppRouter />
+      </AppScroll>
     </BrowserRouter>
   );
 }

@@ -70,6 +70,16 @@ export const EmailAdapter = {
     });
   },
 
+  async sendAccountDeleted(to) {
+    await deliver({
+      to,
+      subject: "Аккаунт удалён",
+      text:
+        "Ваш аккаунт «Ashen Crowns» был удалён по вашему запросу.\n\n" +
+        "Если это были не вы, свяжитесь с поддержкой.",
+    });
+  },
+
   async sendSecurityNotice(to, message) {
     await deliver({
       to,

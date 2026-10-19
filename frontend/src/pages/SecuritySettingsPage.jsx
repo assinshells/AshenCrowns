@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChangePasswordForm } from "@features/account/change-password/ui/ChangePasswordForm.jsx";
 import { ChangeEmailForm } from "@features/account/change-email/ui/ChangeEmailForm.jsx";
+import { DeleteAccountSection } from "@features/account/delete-account/ui/DeleteAccountSection.jsx";
 import { useSessionStore } from "@entities/session/model/useSessionStore.js";
 import { ROUTES } from "@shared/constants/routes.js";
 import { Notice } from "@shared/ui/Notice.jsx";
@@ -41,6 +42,7 @@ export function SecuritySettingsPage() {
             </div>
           </div>
         </section>
+        <DeleteAccountSection />
       </div>
     </>
   );

@@ -75,6 +75,12 @@ export const UserRepository = {
     );
   },
 
+  /** @returns {Promise<boolean>} true, если запись была удалена */
+  async deleteById(id) {
+    const { rowCount } = await pool.query("DELETE FROM users WHERE id = $1", [id]);
+    return rowCount > 0;
+  },
+
   /** @returns {Promise<boolean>} false, если email уже занят другим аккаунтом */
   async updateEmail(id, email) {
     try {

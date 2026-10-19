@@ -163,3 +163,10 @@ export const validateAccountResendRequest = (raw) => {
     finish(["Неизвестный сценарий подтверждения"]);
   }
 };
+
+export const validateAccountDeleteRequest = (raw) => {
+  const b = body(raw);
+  if (!isString(b.currentPassword) || !b.currentPassword || b.currentPassword.length > 256) {
+    finish(["Укажите текущий пароль"]);
+  }
+};
