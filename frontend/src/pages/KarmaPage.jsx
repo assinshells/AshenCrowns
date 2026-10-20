@@ -1,10 +1,11 @@
 import { useId, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { START_KARMA } from "@entities/character/lib/formulas.js";
 
-// По умолчанию обе кармы — 0 (значения появятся из профиля игрока позже).
+// По умолчанию обе кармы — 0 (START_KARMA); значения появятся из профиля игрока позже.
 const TABS = [
-  { key: "dark", label: "Тёмная карма", Icon: Moon, value: 0 },
-  { key: "light", label: "Светлая карма", Icon: Sun, value: 0 },
+  { key: "dark", label: "Тёмная карма", Icon: Moon, value: START_KARMA.dark },
+  { key: "light", label: "Светлая карма", Icon: Sun, value: START_KARMA.light },
 ];
 
 /** Силы кармы: вкладки «Тёмная / Светлая карма», в каждой — счётчик. */

@@ -271,5 +271,13 @@ test("/me отдаёт стартовые игровые параметры из
     experienceToNext: 5,
     silver: 200,
     rubies: 0,
+    attributes: {
+      strength: 3,
+      giftedness: 3,
+      constitution: 3,
+      luck: 3,
+      attack: 3,
+      defense: 3,
+    },
   });
 });

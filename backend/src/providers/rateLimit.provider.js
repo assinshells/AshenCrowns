@@ -44,4 +44,6 @@ export const RateLimitProvider = {
   resetPassword: makeRateLimiter("reset", cfg.resetMax),
   // Для авторизованных операций лимит считается по userId, а не по IP.
   account: makeRateLimiter("account", cfg.accountMax, (req) => `u:${req.user.id}`),
+  // Игровые действия (повышение характеристик): лимит мягче, но тоже по userId.
+  character: makeRateLimiter("character", cfg.characterMax, (req) => `u:${req.user.id}`),
 };

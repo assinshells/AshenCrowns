@@ -18,6 +18,14 @@ CREATE TABLE IF NOT EXISTS users (
     experience_to_next  INTEGER      NOT NULL DEFAULT 5   CHECK (experience_to_next > 0),
     silver              INTEGER      NOT NULL DEFAULT 200 CHECK (silver >= 0),
     rubies              INTEGER      NOT NULL DEFAULT 0   CHECK (rubies >= 0),
+    -- Характеристики персонажа (стартовое значение — 3). Повышаются за серебро:
+    -- цена = квадрат нового значения (см. backend/src/constants/character.constants.js).
+    strength            INTEGER      NOT NULL DEFAULT 3   CHECK (strength >= 1),
+    giftedness          INTEGER      NOT NULL DEFAULT 3   CHECK (giftedness >= 1),
+    constitution        INTEGER      NOT NULL DEFAULT 3   CHECK (constitution >= 1),
+    luck                INTEGER      NOT NULL DEFAULT 3   CHECK (luck >= 1),
+    attack_skill        INTEGER      NOT NULL DEFAULT 3   CHECK (attack_skill >= 1),
+    defense_skill       INTEGER      NOT NULL DEFAULT 3   CHECK (defense_skill >= 1),
     CONSTRAINT users_health_range CHECK (health <= max_health),
     email_verified_at   TIMESTAMPTZ,
     password_changed_at TIMESTAMPTZ,

@@ -106,5 +106,6 @@ export const env = {
     resendMax: Number(getEnv("RATE_LIMIT_RESEND_MAX", 10)),
     resetMax: Number(getEnv("RATE_LIMIT_RESET_MAX", 5)),
     accountMax: Number(getEnv("RATE_LIMIT_ACCOUNT_MAX", 20)),
+    characterMax: Number(getEnv("RATE_LIMIT_CHARACTER_MAX", 120)),
   },
 };

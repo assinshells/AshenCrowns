@@ -110,3 +110,11 @@ export class InvalidCurrentPasswordException extends BaseException {
     );
   }
 }
+
+// 409: состояние игрока не позволяет операцию. Клиент обновляет профиль и
+// показывает сообщение; 401/403 здесь не подходят — сессия валидна.
+export class InsufficientSilverException extends ConflictException {
+  constructor() {
+    super("Недостаточно серебра", "INSUFFICIENT_SILVER");
+  }
+}

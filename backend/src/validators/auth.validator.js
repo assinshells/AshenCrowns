@@ -1,5 +1,6 @@
 import { ValidationException } from "../exceptions/auth.exceptions.js";
 import { PUBLIC_OTP_PURPOSES, OTP_PURPOSES } from "../constants/auth.constants.js";
+import { ATTRIBUTE_KEYS } from "../constants/character.constants.js";
 
 /**
  * Серверная валидация. Все функции принимают «сырое» тело запроса,
@@ -165,4 +166,13 @@ export const validateAccountResendRequest = (raw) => {
 
 export const validateAccountDeleteRequest = (raw) => {
   finish(enteredPasswordErrors(body(raw).currentPassword, CURRENT_PASSWORD_MESSAGE));
+};
+
+export const validateUpgradeAttributeRequest = (raw) => {
+  const { attribute } = body(raw);
+  finish(
+    isString(attribute) && ATTRIBUTE_KEYS.includes(attribute)
+      ? []
+      : ["Неизвестная характеристика"],
+  );
 };

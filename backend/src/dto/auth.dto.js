@@ -53,6 +53,14 @@ export const toPlayerStats = (user) => ({
   experienceToNext: user.experience_to_next,
   silver: user.silver,
   rubies: user.rubies,
+  attributes: {
+    strength: user.strength,
+    giftedness: user.giftedness,
+    constitution: user.constitution,
+    luck: user.luck,
+    attack: user.attack_skill,
+    defense: user.defense_skill,
+  },
 });
 
 /** Публичное представление пользователя: без хеша и без полного email. */

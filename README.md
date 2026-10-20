@@ -54,7 +54,8 @@ cookie получают флаг `Secure` при `NODE_ENV=production`, поэт
 email стал обязательным, старые хеши паролей несовместимы — пользователям нужно восстановить пароль).
 
 Игровые параметры (уровень, жизни, опыт, серебро, рубины) добавляет `migrations/002_player_stats.sql`;
-стартовые значения заданы как `DEFAULT` колонок и отдаются в `stats` ответов `/api/auth/me` и `/api/auth/login`.
+характеристики персонажа (сила, одаренность, телосложение, удача, искусство атаки и защиты; старт — 3) добавляет
+`migrations/003_character_attributes.sql`; стартовые значения заданы как `DEFAULT` колонок и отдаются в `stats` ответов `/api/auth/me` и `/api/auth/login`.
 
 ## Архитектура аутентификации
 
@@ -111,6 +112,7 @@ email стал обязательным, старые хеши паролей н
 | POST | `/api/auth/register`, `/login`, `/forgot-password`, `/verify-otp`, `/resend-otp`, `/reset-password` | публичный (CSRF + rate-limit) |
 | POST | `/api/auth/logout` | CSRF |
 | GET | `/api/auth/me` | сессия |
+| POST | `/api/character/attributes/upgrade` | сессия + CSRF; тело `{ attribute }` (`strength`, `giftedness`, `constitution`, `luck`, `attack`, `defense`); +1 за серебро (цена — квадрат нового значения), ответ — `stats`; 409 `INSUFFICIENT_SILVER` |
 | POST | `/api/account/password/request`, `/password/confirm`, `/email/request`, `/email/confirm`, `/otp/resend` | сессия + CSRF |
 
 ## Маршруты интерфейса

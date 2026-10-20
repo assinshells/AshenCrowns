@@ -22,5 +22,8 @@ export const useSessionStore = create((set) => ({
   },
 
   setUser: (user) => set({ user, status: "authenticated" }),
+  /** Подменяет игровые параметры (ответ сервера после игрового действия). */
+  updateStats: (stats) =>
+    set((state) => (state.user ? { user: { ...state.user, stats } } : state)),
   clear: () => set({ user: null, status: "anonymous" }),
 }));

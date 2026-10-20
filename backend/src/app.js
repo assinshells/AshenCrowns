@@ -7,6 +7,7 @@ import logger from "./config/logger.js";
 import { env } from "./config/env.js";
 import authRoutes from "./routes/auth.routes.js";
 import accountRoutes from "./routes/account.routes.js";
+import characterRoutes from "./routes/character.routes.js";
 import { csrfProtection } from "./middlewares/csrf.middleware.js";
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { globalExceptionHandler } from "./middlewares/globalException.middleware.js";
@@ -40,6 +41,7 @@ app.get("/health", (_req, res) => {
 app.use("/api", csrfProtection);
 app.use("/api/auth", authRoutes);
 app.use("/api/account", accountRoutes);
+app.use("/api/character", characterRoutes);
 
 app.use(notFoundHandler);
 app.use(globalExceptionHandler);

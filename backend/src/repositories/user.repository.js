@@ -1,8 +1,10 @@
 import { pool } from "../config/database.js";
+import { ATTRIBUTES, HEALTH_PER_CONSTITUTION } from "../constants/character.constants.js";
 
 const COLUMNS =
   "id, login, email, password_hash, avatar_path, email_verified_at, created_at, " +
-  "level, health, max_health, experience, experience_to_next, silver, rubies";
+  "level, health, max_health, experience, experience_to_next, silver, rubies, " +
+  "strength, giftedness, constitution, luck, attack_skill, defense_skill";
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -94,5 +96,37 @@ export const UserRepository = {
       if (conflictField(err) === "email") return false;
       throw err;
     }
+  },
+
+  /**
+   * Повышает характеристику на 1, списывая серебро (цена — квадрат нового значения).
+   * Одним атомарным UPDATE: проверка баланса и списание не разделены, поэтому
+   * параллельные запросы не уведут серебро в минус и не повысят характеристику
+   * без оплаты. Имя колонки берётся только из белого списка ATTRIBUTES.
+   *
+   * Телосложение дополнительно поднимает max_health, а текущее здоровье растёт
+   * на ту же величину.
+   * @returns {Promise<object|null>} обновлённый пользователь или null, если серебра не хватает
+   */
+  async upgradeAttribute(id, attribute) {
+    const column = ATTRIBUTES[attribute];
+    if (!column) throw new Error(`Unknown attribute: ${attribute}`);
+
+    const health =
+      attribute === "constitution"
+        ? `, max_health = max_health + ${HEALTH_PER_CONSTITUTION}, health = health + ${HEALTH_PER_CONSTITUTION}`
+        : "";
+
+    const { rows } = await pool.query(
+      `UPDATE users
+          SET ${column} = ${column} + 1,
+              silver = silver - ((${column} + 1)::bigint * (${column} + 1))${health},
+              updated_at = NOW()
+        WHERE id = $1
+          AND silver >= (${column} + 1)::bigint * (${column} + 1)
+        RETURNING ${COLUMNS}`,
+      [id],
+    );
+    return rows[0] ?? null;
   },
 };
