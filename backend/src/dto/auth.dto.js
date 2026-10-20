@@ -45,6 +45,12 @@ export const toEmailChangeDto = (b) => ({
 });
 
 /** Игровые параметры игрока (значения хранятся в БД; стартовые — DEFAULT колонок). */
+/** Карма из одного числа: светлая и тёмная не бывают одновременно и не бывают отрицательными. */
+export const splitKarma = (karma = 0) => ({
+  light: Math.max(karma, 0),
+  dark: Math.max(-karma, 0),
+});
+
 export const toPlayerStats = (user) => ({
   level: user.level,
   health: user.health,
@@ -53,6 +59,8 @@ export const toPlayerStats = (user) => ({
   experienceToNext: user.experience_to_next,
   silver: user.silver,
   rubies: user.rubies,
+  // Карма хранится одним числом (> 0 светлая, < 0 тёмная); в минус не считается.
+  karma: splitKarma(user.karma),
   attributes: {
     strength: user.strength,
     giftedness: user.giftedness,

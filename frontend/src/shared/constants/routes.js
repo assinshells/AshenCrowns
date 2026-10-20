@@ -1,6 +1,8 @@
 export const ROUTES = Object.freeze({
   home: "/",
   work: "/work",
+  // Доступна только как переход со страницы «Работа» (по прямой ссылке — редирект), в PROTECTED_PATHS не входит.
+  workProgress: "/work/progress",
   stats: "/stats",
   karma: "/karma",
   settingsSecurity: "/settings/security",
@@ -23,6 +25,7 @@ export const ROUTE_TITLES = Object.freeze({
   [ROUTES.stats]: "Характеристики",
   [ROUTES.karma]: "Силы кармы",
   [ROUTES.work]: "Работа",
+  [ROUTES.workProgress]: "Время работы",
   [ROUTES.settingsSecurity]: "Настройки",
   [ROUTES.settingsNotifications]: "Настройки",
   [ROUTES.about]: "Об игре",

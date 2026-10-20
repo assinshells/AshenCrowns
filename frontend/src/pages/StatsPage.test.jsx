@@ -17,6 +17,7 @@ const stats = (over = {}, attrs = {}) => ({
   experienceToNext: 5,
   silver: 200,
   rubies: 0,
+  karma: { light: 0, dark: 0 },
   attributes: { strength: 3, giftedness: 3, constitution: 3, luck: 3, attack: 3, defense: 3, ...attrs },
   ...over,
 });
@@ -38,7 +39,7 @@ describe("StatsPage", () => {
     setStats(stats());
     render(<StatsPage />);
 
-    expect(screen.getAllByText("Базовое значение: 3 · Цена: 16")).toHaveLength(6);
+    expect(screen.getAllByText("Базовое значение: 3 · Цена: 9")).toHaveLength(6);
     const derived = screen.getByText("Пункты жизни").closest("dl");
     expect(within(derived).getByText("75 / 75")).toBeTruthy();
     expect(within(derived).getByText("Карма").nextSibling.textContent).toBe("0");
@@ -48,13 +49,24 @@ describe("StatsPage", () => {
     expect(within(derived).getByText("Шанс на защиту").nextSibling.textContent).toBe("3");
   });
 
+  it("карма: показывается та, что есть (светлая или тёмная)", () => {
+    setStats(stats({ karma: { light: 2, dark: 0 } }));
+    render(<StatsPage />);
+    expect(screen.getByText("Карма").nextSibling.textContent).toBe("2 (светлая)");
+
+    cleanup();
+    setStats(stats({ karma: { light: 0, dark: 7 } }));
+    render(<StatsPage />);
+    expect(screen.getByText("Карма").nextSibling.textContent).toBe("7 (тёмная)");
+  });
+
   it("кнопка неактивна, пока серебра меньше цены", () => {
-    setStats(stats({ silver: 15 }));
+    setStats(stats({ silver: 8 }));
     render(<StatsPage />);
     expect(upgradeButton("Сила").disabled).toBe(true);
 
     cleanup();
-    setStats(stats({ silver: 16 }));
+    setStats(stats({ silver: 9 }));
     render(<StatsPage />);
     expect(upgradeButton("Сила").disabled).toBe(false);
   });
@@ -62,7 +74,7 @@ describe("StatsPage", () => {
   it("повышение: запрос с ключом, новые значения и цена применяются на странице", async () => {
     setStats(stats());
     vi.mocked(upgradeAttribute).mockResolvedValue(
-      stats({ silver: 184, maxHealth: 100, health: 100 }, { constitution: 4 }),
+      stats({ silver: 191, maxHealth: 100, health: 100 }, { constitution: 4 }),
     );
     render(<StatsPage />);
 
@@ -70,8 +82,8 @@ describe("StatsPage", () => {
 
     expect(upgradeAttribute).toHaveBeenCalledWith("constitution");
     await waitFor(() => expect(screen.getByText("100 / 100")).toBeTruthy());
-    expect(screen.getByText("Базовое значение: 4 · Цена: 25")).toBeTruthy();
-    expect(useSessionStore.getState().user.stats.silver).toBe(184);
+    expect(screen.getByText("Базовое значение: 4 · Цена: 16")).toBeTruthy();
+    expect(useSessionStore.getState().user.stats.silver).toBe(191);
   });
 
   it("после повышения до порога серебра кнопки блокируются", async () => {

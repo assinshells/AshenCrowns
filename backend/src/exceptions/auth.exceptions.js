@@ -118,3 +118,9 @@ export class InsufficientSilverException extends ConflictException {
     super("Недостаточно серебра", "INSUFFICIENT_SILVER");
   }
 }
+
+export class AlreadyWorkingException extends ConflictException {
+  constructor() {
+    super("Вы уже работаете", "ALREADY_WORKING");
+  }
+}

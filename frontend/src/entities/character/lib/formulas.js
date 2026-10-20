@@ -23,15 +23,15 @@ export const START_ATTRIBUTES = Object.freeze({
   defense: 3,
 });
 
-/** Карма: пока не хранится на сервере, у всех 0. */
+/** Стартовая карма. Светлая и тёмная не бывают одновременно: на сервере хранится одно число. */
 export const START_KARMA = Object.freeze({ dark: 0, light: 0 });
 
 export const HEALTH_PER_CONSTITUTION = 25;
 export const STRENGTH_PER_DAMAGE = 3;
 export const GIFTEDNESS_PER_ARMOR = 3;
 
-/** Цена повышения с текущего значения: квадрат НОВОГО значения (3 → 4 стоит 16; до 10 — 100). */
-export const upgradeCost = (current) => (current + 1) ** 2;
+/** Цена повышения с текущего значения — его квадрат (с 3 стоит 9; с 10 на 11 — 100). */
+export const upgradeCost = (current) => current ** 2;
 
 /**
  * Производные значения из характеристик.

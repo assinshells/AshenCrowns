@@ -271,6 +271,7 @@ test("/me отдаёт стартовые игровые параметры из
     experienceToNext: 5,
     silver: 200,
     rubies: 0,
+    karma: { light: 0, dark: 0 },
     attributes: {
       strength: 3,
       giftedness: 3,

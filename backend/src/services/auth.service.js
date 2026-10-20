@@ -2,6 +2,7 @@ import { UserRepository } from "../repositories/user.repository.js";
 import { SessionService } from "./session.service.js";
 import { OtpService } from "./otp.service.js";
 import { LoginLock } from "./loginLock.service.js";
+import { WorkRepository } from "../repositories/work.repository.js";
 import { PasswordProvider } from "../providers/password.provider.js";
 import { EmailAdapter } from "../adapters/email.adapter.js";
 import { authConfig } from "../config/auth.config.js";
@@ -85,7 +86,11 @@ export const AuthService = {
     }
 
     const sid = await SessionService.create(user.id, meta);
-    return { sid, user };
+    // Работа, завершившаяся пока игрока не было, зачисляется до выдачи профиля.
+    const current = (await WorkRepository.settleFinished(user.id))
+      ? await UserRepository.findById(user.id)
+      : user;
+    return { sid, user: current };
   },
 
   async logout({ sid }) {

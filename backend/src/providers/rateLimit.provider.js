@@ -46,4 +46,5 @@ export const RateLimitProvider = {
   account: makeRateLimiter("account", cfg.accountMax, (req) => `u:${req.user.id}`),
   // Игровые действия (повышение характеристик): лимит мягче, но тоже по userId.
   character: makeRateLimiter("character", cfg.characterMax, (req) => `u:${req.user.id}`),
+  work: makeRateLimiter("work", cfg.workMax, (req) => `u:${req.user.id}`),
 };

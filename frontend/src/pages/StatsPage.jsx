@@ -7,7 +7,6 @@ import { useRequest } from "@shared/lib/useRequest.js";
 import { upgradeAttribute } from "@entities/character/api/character.api.js";
 import {
   ATTRIBUTES,
-  START_KARMA,
   formatDamage,
   upgradeCost,
 } from "@entities/character/lib/formulas.js";
@@ -20,7 +19,7 @@ import { useSessionStore } from "@entities/session/model/useSessionStore.js";
  * Кнопка активна, только если серебра хватает на повышение; серебро списывает сервер.
  */
 export function StatsPage() {
-  const { silver, health, maxHealth, attributes, derived } = useCharacter();
+  const { silver, health, maxHealth, attributes, derived, karma } = useCharacter();
   const updateStats = useSessionStore((s) => s.updateStats);
   const loadProfile = useSessionStore((s) => s.load);
   const { loading, error, run } = useRequest();
@@ -38,9 +37,13 @@ export function StatsPage() {
     if (stats) updateStats(stats);
   };
 
+  // Светлая и тёмная не бывают одновременно: показываем ту, что есть.
+  const karmaText =
+    karma.light > 0 ? `${karma.light} (светлая)` : karma.dark > 0 ? `${karma.dark} (тёмная)` : 0;
+
   const derivedItems = [
     { label: "Пункты жизни", value: `${health} / ${maxHealth}` },
-    { label: "Карма", value: START_KARMA.dark + START_KARMA.light },
+    { label: "Карма", value: karmaText },
     { label: "Урон", value: formatDamage(derived.damage) },
     { label: "Броня", value: derived.armor },
     { label: "Шанс на удар", value: derived.hitChance },

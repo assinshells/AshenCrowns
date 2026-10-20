@@ -7,10 +7,10 @@ import {
 } from "./formulas.js";
 
 describe("upgradeCost", () => {
-  it("цена — квадрат нового значения", () => {
-    expect(upgradeCost(3)).toBe(16);
-    expect(upgradeCost(4)).toBe(25);
-    expect(upgradeCost(9)).toBe(100); // повышение до 10
+  it("цена — квадрат текущего значения", () => {
+    expect(upgradeCost(3)).toBe(9);
+    expect(upgradeCost(4)).toBe(16);
+    expect(upgradeCost(10)).toBe(100); // повышение с 10 на 11
   });
 });
 

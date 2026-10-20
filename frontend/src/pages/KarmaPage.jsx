@@ -1,22 +1,27 @@
 import { useId, useState } from "react";
 import { Moon, Sun } from "lucide-react";
-import { START_KARMA } from "@entities/character/lib/formulas.js";
+import { useCharacter } from "@entities/character/model/useCharacter.js";
 
-// По умолчанию обе кармы — 0 (START_KARMA); значения появятся из профиля игрока позже.
-const TABS = [
-  { key: "dark", label: "Тёмная карма", Icon: Moon, value: START_KARMA.dark },
-  { key: "light", label: "Светлая карма", Icon: Sun, value: START_KARMA.light },
-];
-
-/** Силы кармы: вкладки «Тёмная / Светлая карма», в каждой — счётчик. */
+/**
+ * Силы кармы: вкладки «Тёмная / Светлая карма», в каждой — счётчик.
+ * Открыта вкладка, где кармы больше (при равенстве — первая); пока игрок сам не переключил.
+ */
 export function KarmaPage() {
-  const [active, setActive] = useState(TABS[0].key);
+  const { karma } = useCharacter();
+  const tabs = [
+    { key: "dark", label: "Тёмная карма", Icon: Moon, value: karma.dark },
+    { key: "light", label: "Светлая карма", Icon: Sun, value: karma.light },
+  ];
+
+  const [picked, setPicked] = useState(null);
+  const strongest = karma.light > karma.dark ? "light" : "dark";
+  const active = picked ?? strongest;
   const baseId = useId();
 
   return (
     <>
       <ul className="nav nav-tabs flex-nowrap overflow-x-auto overflow-y-hidden text-nowrap mb-4" role="tablist">
-        {TABS.map(({ key, label, Icon }) => (
+        {tabs.map(({ key, label, Icon }) => (
           <li className="nav-item" role="presentation" key={key}>
             <button
               type="button"
@@ -25,7 +30,7 @@ export function KarmaPage() {
               aria-controls={`${baseId}-panel-${key}`}
               aria-selected={active === key}
               className={`nav-link d-flex align-items-center gap-2${active === key ? " active" : ""}`}
-              onClick={() => setActive(key)}
+              onClick={() => setPicked(key)}
             >
               <Icon size={16} aria-hidden="true" />
               {label}
@@ -34,21 +39,23 @@ export function KarmaPage() {
         ))}
       </ul>
 
-      {TABS.filter(({ key }) => key === active).map(({ key, label, value }) => (
-        <div
-          key={key}
-          role="tabpanel"
-          id={`${baseId}-panel-${key}`}
-          aria-labelledby={`${baseId}-tab-${key}`}
-        >
-          <div className="card">
-            <div className="card-body">
-              <h2 className="h6 card-title">{label}</h2>
-              <p className="display-4 fw-semibold mb-0">{value}</p>
+      {tabs
+        .filter(({ key }) => key === active)
+        .map(({ key, label, value }) => (
+          <div
+            key={key}
+            role="tabpanel"
+            id={`${baseId}-panel-${key}`}
+            aria-labelledby={`${baseId}-tab-${key}`}
+          >
+            <div className="card">
+              <div className="card-body">
+                <h2 className="h6 card-title">{label}</h2>
+                <p className="display-4 fw-semibold mb-0">{value}</p>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
     </>
   );
 }

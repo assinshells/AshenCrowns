@@ -1,6 +1,7 @@
 import { ValidationException } from "../exceptions/auth.exceptions.js";
 import { PUBLIC_OTP_PURPOSES, OTP_PURPOSES } from "../constants/auth.constants.js";
 import { ATTRIBUTE_KEYS } from "../constants/character.constants.js";
+import { WORK_KINDS, WORK_MIN_HOURS, WORK_MAX_HOURS } from "../constants/work.constants.js";
 
 /**
  * Серверная валидация. Все функции принимают «сырое» тело запроса,
@@ -175,4 +176,14 @@ export const validateUpgradeAttributeRequest = (raw) => {
       ? []
       : ["Неизвестная характеристика"],
   );
+};
+
+export const validateStartWorkRequest = (raw) => {
+  const { kind, hours } = body(raw);
+  const errors = [];
+  if (!isString(kind) || !WORK_KINDS.includes(kind)) errors.push("Неизвестный вид работы");
+  if (!Number.isInteger(hours) || hours < WORK_MIN_HOURS || hours > WORK_MAX_HOURS) {
+    errors.push(`Время работы — от ${WORK_MIN_HOURS} до ${WORK_MAX_HOURS} часов`);
+  }
+  finish(errors);
 };

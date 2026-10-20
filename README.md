@@ -55,7 +55,7 @@ email стал обязательным, старые хеши паролей н
 
 Игровые параметры (уровень, жизни, опыт, серебро, рубины) добавляет `migrations/002_player_stats.sql`;
 характеристики персонажа (сила, одаренность, телосложение, удача, искусство атаки и защиты; старт — 3) добавляет
-`migrations/003_character_attributes.sql`; стартовые значения заданы как `DEFAULT` колонок и отдаются в `stats` ответов `/api/auth/me` и `/api/auth/login`.
+`migrations/003_character_attributes.sql`; карму игрока и таблицу работ — `migrations/004_work_and_karma.sql`; стартовые значения заданы как `DEFAULT` колонок и отдаются в `stats` ответов `/api/auth/me` и `/api/auth/login`.
 
 ## Архитектура аутентификации
 
@@ -112,13 +112,17 @@ email стал обязательным, старые хеши паролей н
 | POST | `/api/auth/register`, `/login`, `/forgot-password`, `/verify-otp`, `/resend-otp`, `/reset-password` | публичный (CSRF + rate-limit) |
 | POST | `/api/auth/logout` | CSRF |
 | GET | `/api/auth/me` | сессия |
-| POST | `/api/character/attributes/upgrade` | сессия + CSRF; тело `{ attribute }` (`strength`, `giftedness`, `constitution`, `luck`, `attack`, `defense`); +1 за серебро (цена — квадрат нового значения), ответ — `stats`; 409 `INSUFFICIENT_SILVER` |
+| POST | `/api/character/attributes/upgrade` | сессия + CSRF; тело `{ attribute }` (`strength`, `giftedness`, `constitution`, `luck`, `attack`, `defense`); +1 за серебро (цена — квадрат текущего значения), ответ — `stats`; 409 `INSUFFICIENT_SILVER` |
+| GET | `/api/work` | сессия; каталог наград (серебро и карма на 1–8 ч), активная работа, последняя завершённая, серверное время |
+| POST | `/api/work/start` | сессия + CSRF; тело `{ kind, hours }` (`gate`, `field`, `robbery`; 1–8); 409 `ALREADY_WORKING` |
+| POST | `/api/work/cancel` | сессия + CSRF; отмена идущей работы, ничего не зачисляется |
 | POST | `/api/account/password/request`, `/password/confirm`, `/email/request`, `/email/confirm`, `/otp/resend` | сессия + CSRF |
 
 ## Маршруты интерфейса
 
 Публичные: `/login`, `/register`, `/forgot-password`, `/reset-password`, `/verify-otp`.
 Защищённые (редирект на `/login`, после входа — возврат на исходную страницу из белого списка): `/` (персонаж), `/stats` (характеристики), `/karma` (силы кармы), `/work` (работа),
+(`/work/progress` — ход работы: по прямой ссылке открывается только переходом со страницы «Работа»),
 `/settings/security`, `/settings/notifications`, а также заглушки `/about`, `/rules`, `/support`, `/version`.
 
 ## Тесты

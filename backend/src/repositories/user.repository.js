@@ -4,7 +4,7 @@ import { ATTRIBUTES, HEALTH_PER_CONSTITUTION } from "../constants/character.cons
 const COLUMNS =
   "id, login, email, password_hash, avatar_path, email_verified_at, created_at, " +
   "level, health, max_health, experience, experience_to_next, silver, rubies, " +
-  "strength, giftedness, constitution, luck, attack_skill, defense_skill";
+  "strength, giftedness, constitution, luck, attack_skill, defense_skill, karma";
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -99,7 +99,7 @@ export const UserRepository = {
   },
 
   /**
-   * Повышает характеристику на 1, списывая серебро (цена — квадрат нового значения).
+   * Повышает характеристику на 1, списывая серебро (цена — квадрат текущего значения).
    * Одним атомарным UPDATE: проверка баланса и списание не разделены, поэтому
    * параллельные запросы не уведут серебро в минус и не повысят характеристику
    * без оплаты. Имя колонки берётся только из белого списка ATTRIBUTES.
@@ -120,10 +120,10 @@ export const UserRepository = {
     const { rows } = await pool.query(
       `UPDATE users
           SET ${column} = ${column} + 1,
-              silver = silver - ((${column} + 1)::bigint * (${column} + 1))${health},
+              silver = silver - (${column}::bigint * ${column})${health},
               updated_at = NOW()
         WHERE id = $1
-          AND silver >= (${column} + 1)::bigint * (${column} + 1)
+          AND silver >= ${column}::bigint * ${column}
         RETURNING ${COLUMNS}`,
       [id],
     );

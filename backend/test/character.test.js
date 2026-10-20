@@ -17,16 +17,16 @@ test("повышение требует авторизации", async () => {
   assert.equal(res.status, 401);
 });
 
-test("повышение силы: цена — квадрат нового значения, серебро списывается", async () => {
+test("повышение силы: цена — квадрат текущего значения, серебро списывается", async () => {
   const { client } = await registerAndLogin(ctx);
   const res = await upgrade(client, "strength");
   assert.equal(res.status, 200);
   assert.equal(res.body.stats.attributes.strength, 4);
-  assert.equal(res.body.stats.silver, 200 - 16);
+  assert.equal(res.body.stats.silver, 200 - 9);
 
   const me = (await client.get("/api/auth/me")).body.user;
   assert.equal(me.stats.attributes.strength, 4, "значение сохранено в БД");
-  assert.equal(me.stats.silver, 184);
+  assert.equal(me.stats.silver, 191);
 });
 
 test("каждая характеристика повышается отдельно", async () => {
@@ -50,33 +50,33 @@ test("телосложение поднимает максимум и текущ
   assert.equal(res.body.stats.health, 100);
 });
 
-test("последовательные повышения списывают 16, 25, 36…", async () => {
+test("последовательные повышения списывают 9, 16, 25…", async () => {
   const { client } = await registerAndLogin(ctx);
   let silver = 200;
-  for (const next of [4, 5, 6]) {
+  for (const current of [3, 4, 5]) {
     const res = await upgrade(client, "strength");
     assert.equal(res.status, 200);
-    silver -= next * next;
+    silver -= current * current;
     assert.equal(res.body.stats.silver, silver);
   }
 });
 
 test("не хватает серебра: 409, ничего не меняется", async () => {
   const { client, user } = await registerAndLogin(ctx);
-  await ctx.pool.query("UPDATE users SET silver = 15 WHERE lower(email) = lower($1)", [user.email]);
+  await ctx.pool.query("UPDATE users SET silver = 8 WHERE lower(email) = lower($1)", [user.email]);
 
   const res = await upgrade(client, "strength");
   assert.equal(res.status, 409);
   assert.equal(res.body.error.code, "INSUFFICIENT_SILVER");
 
   const { stats } = (await client.get("/api/auth/me")).body.user;
-  assert.equal(stats.silver, 15);
+  assert.equal(stats.silver, 8);
   assert.equal(stats.attributes.strength, 3);
 });
 
 test("ровно хватает серебра: баланс становится 0", async () => {
   const { client, user } = await registerAndLogin(ctx);
-  await ctx.pool.query("UPDATE users SET silver = 16 WHERE lower(email) = lower($1)", [user.email]);
+  await ctx.pool.query("UPDATE users SET silver = 9 WHERE lower(email) = lower($1)", [user.email]);
   const res = await upgrade(client, "luck");
   assert.equal(res.status, 200);
   assert.equal(res.body.stats.silver, 0);
@@ -84,15 +84,15 @@ test("ровно хватает серебра: баланс становитс�
 
 test("параллельные запросы не уводят серебро в минус", async () => {
   const { client, user } = await registerAndLogin(ctx);
-  // Хватает на одно повышение силы (16), на второе (25) — нет.
-  await ctx.pool.query("UPDATE users SET silver = 30 WHERE lower(email) = lower($1)", [user.email]);
+  // Хватает на одно повышение силы (9), на второе (16) — нет.
+  await ctx.pool.query("UPDATE users SET silver = 20 WHERE lower(email) = lower($1)", [user.email]);
 
   const results = await Promise.all([upgrade(client, "strength"), upgrade(client, "strength")]);
   assert.deepEqual(results.map((r) => r.status).sort(), [200, 409]);
 
   const { stats } = (await client.get("/api/auth/me")).body.user;
   assert.equal(stats.attributes.strength, 4);
-  assert.equal(stats.silver, 14);
+  assert.equal(stats.silver, 11);
 });
 
 test("неизвестная характеристика и мусор в теле отклоняются (400)", async () => {
@@ -115,7 +115,7 @@ test("цена и значения из тела запроса игнориру
   });
   assert.equal(res.status, 200);
   assert.equal(res.body.stats.attributes.strength, 4);
-  assert.equal(res.body.stats.silver, 184);
+  assert.equal(res.body.stats.silver, 191);
 });
 
 test("повышение требует CSRF-токен", async () => {

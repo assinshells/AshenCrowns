@@ -1,5 +1,5 @@
 import { useSessionStore } from "@entities/session/model/useSessionStore.js";
-import { START_ATTRIBUTES, deriveStats } from "../lib/formulas.js";
+import { START_ATTRIBUTES, START_KARMA, deriveStats } from "../lib/formulas.js";
 
 /** Персонаж текущего игрока: характеристики, производные значения, жизни и серебро. */
 export function useCharacter() {
@@ -14,5 +14,6 @@ export function useCharacter() {
     maxHealth: stats?.maxHealth ?? derived.maxHealth,
     attributes,
     derived,
+    karma: stats?.karma ?? START_KARMA,
   };
 }
