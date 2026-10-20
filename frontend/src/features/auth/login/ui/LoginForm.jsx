@@ -48,6 +48,7 @@ export function LoginForm({ onSuccess, onUnverified }) {
       <TextField
         id="password"
         label="Пароль"
+        labelAside={<Link to={ROUTES.forgotPassword}>Забыли пароль?</Link>}
         type="password"
         autoComplete="current-password"
         value={password}
@@ -55,17 +56,11 @@ export function LoginForm({ onSuccess, onUnverified }) {
         required
       />
 
-      <div className="d-grid mb-3">
+      <div className="d-grid">
         <SubmitButton loading={loading} loadingText="Входим…">
           Войти
         </SubmitButton>
       </div>
-      <p className="mb-1 text-center">
-        <Link to={ROUTES.forgotPassword}>Забыли пароль?</Link>
-      </p>
-      <p className="mb-0 text-center">
-        Нет аккаунта? <Link to={ROUTES.register}>Зарегистрироваться</Link>
-      </p>
     </form>
   );
 }

@@ -54,14 +54,11 @@ export function ResetPasswordForm({ resetToken, onSuccess }) {
         required
       />
 
-      <div className="d-grid mb-3">
+      <div className="d-grid">
         <SubmitButton loading={loading} loadingText="Сохраняем…">
           Сохранить пароль
         </SubmitButton>
       </div>
-      <p className="mb-0 text-center">
-        <Link to={ROUTES.login}>Вернуться ко входу</Link>
-      </p>
     </form>
   );
 }

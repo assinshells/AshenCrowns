@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { registerRequest } from "@features/auth/register/api/register.api.js";
 import { useRequest } from "@shared/lib/useRequest.js";
 import { passwordsMatch } from "@shared/lib/passwords.js";
-import { ROUTES } from "@shared/constants/routes.js";
 import { LOGIN_RULES, PASSWORD_RULES } from "@shared/constants/app.js";
 import { TextField } from "@shared/ui/TextField.jsx";
 import { ErrorAlert } from "@shared/ui/ErrorAlert.jsx";
@@ -74,14 +72,11 @@ export function RegisterForm({ onSuccess }) {
         required
       />
 
-      <div className="d-grid mb-3">
+      <div className="d-grid">
         <SubmitButton loading={loading} loadingText="Регистрируем…">
           Зарегистрироваться
         </SubmitButton>
       </div>
-      <p className="mb-0 text-center">
-        Уже есть аккаунт? <Link to={ROUTES.login}>Войти</Link>
-      </p>
     </form>
   );
 }

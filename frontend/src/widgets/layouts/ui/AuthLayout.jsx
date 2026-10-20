@@ -1,8 +1,8 @@
 import { APP_NAME } from "@shared/constants/app.js";
 import { AuthFooter } from "./AuthFooter.jsx";
 
-/** Макет публичных страниц (вход, регистрация, восстановление, OTP): карточка по центру + футер. Только сетка и компоненты Bootstrap. */
-export function AuthLayout({ title, description, children }) {
+/** Макет публичных страниц (вход, регистрация, восстановление, OTP): карточка по центру + футер. links — ссылки под карточкой. Только сетка и компоненты Bootstrap. */
+export function AuthLayout({ title, description, links, children }) {
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="container py-4 py-md-5 flex-grow-1">
@@ -16,6 +16,7 @@ export function AuthLayout({ title, description, children }) {
                 {children}
               </div>
             </div>
+            {links && <nav className="mt-3 text-center small d-flex flex-column gap-1" aria-label="Другие действия">{links}</nav>}
           </div>
         </div>
       </main>

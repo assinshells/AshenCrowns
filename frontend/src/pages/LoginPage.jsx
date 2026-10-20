@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "@widgets/layouts";
 import { LoginForm } from "@features/auth/login/ui/LoginForm.jsx";
 import { useSessionStore } from "@entities/session/model/useSessionStore.js";
@@ -22,7 +22,14 @@ export function LoginPage() {
     });
 
   return (
-    <AuthLayout title="Вход">
+    <AuthLayout
+      title="Вход"
+      links={
+        <p className="mb-0">
+          Нет аккаунта? <Link to={ROUTES.register}>Зарегистрироваться</Link>
+        </p>
+      }
+    >
       <Notice>{location.state?.notice}</Notice>
       <LoginForm onSuccess={handleSuccess} onUnverified={handleUnverified} />
     </AuthLayout>

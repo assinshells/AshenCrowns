@@ -5,8 +5,9 @@ import { Eye, EyeOff } from "lucide-react";
  * Поле формы на классах Bootstrap: label + input + подсказка.
  * Для type="password" внутри поля (справа) добавляется кнопка «показать/скрыть
  * пароль» без рамок и фона — стили в app/styles/app.css (.password-field).
+ * labelAside — необязательный элемент справа от подписи (например, ссылка).
  */
-export function TextField({ id, label, hint, type = "text", ...inputProps }) {
+export function TextField({ id, label, labelAside, hint, type = "text", ...inputProps }) {
   const isPassword = type === "password";
   const [visible, setVisible] = useState(false);
   const toggleLabel = visible ? "Скрыть пароль" : "Показать пароль";
@@ -24,9 +25,18 @@ export function TextField({ id, label, hint, type = "text", ...inputProps }) {
 
   return (
     <div className="mb-3">
-      <label htmlFor={id} className="form-label">
-        {label}
-      </label>
+      {labelAside ? (
+        <div className="d-flex justify-content-between align-items-baseline">
+          <label htmlFor={id} className="form-label">
+            {label}
+          </label>
+          <span className="small">{labelAside}</span>
+        </div>
+      ) : (
+        <label htmlFor={id} className="form-label">
+          {label}
+        </label>
+      )}
       {isPassword ? (
         <div className="password-field">
           {input}

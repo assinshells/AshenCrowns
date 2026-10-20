@@ -1,4 +1,4 @@
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "@widgets/layouts";
 import { ResetPasswordForm } from "@features/auth/reset-password/ui/ResetPasswordForm.jsx";
 import { ROUTES } from "@shared/constants/routes.js";
@@ -12,7 +12,15 @@ export function ResetPasswordPage() {
   if (!resetToken) return <Navigate to={ROUTES.forgotPassword} replace />;
 
   return (
-    <AuthLayout title="Новый пароль" description="Код подтверждён. Задайте новый пароль.">
+    <AuthLayout
+      title="Новый пароль"
+      description="Код подтверждён. Задайте новый пароль."
+      links={
+        <p className="mb-0">
+          <Link to={ROUTES.login}>Вернуться ко входу</Link>
+        </p>
+      }
+    >
       <ResetPasswordForm
         resetToken={resetToken}
         onSuccess={() =>

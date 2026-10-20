@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { forgotPasswordRequest } from "@features/auth/forgot-password/api/forgotPassword.api.js";
 import { useRequest } from "@shared/lib/useRequest.js";
-import { ROUTES } from "@shared/constants/routes.js";
 import { TextField } from "@shared/ui/TextField.jsx";
 import { ErrorAlert } from "@shared/ui/ErrorAlert.jsx";
 import { SubmitButton } from "@shared/ui/SubmitButton.jsx";
@@ -33,14 +31,11 @@ export function ForgotPasswordForm({ onSuccess }) {
         required
       />
 
-      <div className="d-grid mb-3">
+      <div className="d-grid">
         <SubmitButton loading={loading} loadingText="Отправляем…">
           Отправить инструкцию
         </SubmitButton>
       </div>
-      <p className="mb-0 text-center">
-        <Link to={ROUTES.login}>Вернуться ко входу</Link>
-      </p>
     </form>
   );
 }

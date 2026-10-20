@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "@widgets/layouts";
 import { RegisterForm } from "@features/auth/register/ui/RegisterForm.jsx";
 import { ROUTES } from "@shared/constants/routes.js";
@@ -17,7 +17,14 @@ export function RegisterPage() {
   };
 
   return (
-    <AuthLayout title="Регистрация">
+    <AuthLayout
+      title="Регистрация"
+      links={
+        <p className="mb-0">
+          Уже есть аккаунт? <Link to={ROUTES.login}>Войти</Link>
+        </p>
+      }
+    >
       <RegisterForm onSuccess={handleSuccess} />
     </AuthLayout>
   );

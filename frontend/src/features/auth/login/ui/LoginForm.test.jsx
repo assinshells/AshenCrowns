@@ -25,12 +25,12 @@ beforeEach(() => vi.resetAllMocks());
 afterEach(cleanup);
 
 describe("LoginForm", () => {
-  it("содержит email, пароль, ссылки «Забыли пароль?» и регистрации", () => {
+  it("содержит email, пароль и ссылку «Забыли пароль?» (регистрация — под карточкой, в LoginPage)", () => {
     setup();
     expect(screen.getByLabelText("Email").getAttribute("type")).toBe("email");
     expect(screen.getByLabelText("Пароль").getAttribute("type")).toBe("password");
     expect(screen.getByRole("link", { name: "Забыли пароль?" }).getAttribute("href")).toBe("/forgot-password");
-    expect(screen.getByRole("link", { name: "Зарегистрироваться" }).getAttribute("href")).toBe("/register");
+    expect(screen.queryByRole("link", { name: "Зарегистрироваться" })).toBeNull();
   });
 
   it("успешный вход → onSuccess(user)", async () => {

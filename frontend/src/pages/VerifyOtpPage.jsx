@@ -58,7 +58,17 @@ export function VerifyOtpPage() {
   };
 
   return (
-    <AuthLayout title={scenario.title} description={scenario.description}>
+    <AuthLayout
+      title={scenario.title}
+      description={scenario.description}
+      links={
+        <p className="mb-0">
+          <Link to={scenario.requiresAuth ? ROUTES.settingsSecurity : ROUTES.login}>
+            {scenario.requiresAuth ? "Отмена" : "Вернуться ко входу"}
+          </Link>
+        </p>
+      }
+    >
       {state.unverified && (
         <Notice variant="warning">
           Email ещё не подтверждён. Введите код из письма или запросите новый.
@@ -71,11 +81,6 @@ export function VerifyOtpPage() {
         initialCooldown={initialCooldown}
         onVerified={handleVerified}
       />
-      <p className="mt-3 mb-0 text-center">
-        <Link to={scenario.requiresAuth ? ROUTES.settingsSecurity : ROUTES.login}>
-          {scenario.requiresAuth ? "Отмена" : "Вернуться ко входу"}
-        </Link>
-      </p>
     </AuthLayout>
   );
 }
