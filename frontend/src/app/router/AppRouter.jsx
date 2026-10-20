@@ -8,8 +8,10 @@ import { RegisterPage } from "@pages/RegisterPage.jsx";
 import { ForgotPasswordPage } from "@pages/ForgotPasswordPage.jsx";
 import { ResetPasswordPage } from "@pages/ResetPasswordPage.jsx";
 import { VerifyOtpPage } from "@pages/VerifyOtpPage.jsx";
-import { HomePage } from "@pages/HomePage.jsx";
-import { HeroPage } from "@pages/HeroPage.jsx";
+import { CharacterPage } from "@pages/CharacterPage.jsx";
+import { StatsPage } from "@pages/StatsPage.jsx";
+import { KarmaPage } from "@pages/KarmaPage.jsx";
+import { WorkPage } from "@pages/WorkPage.jsx";
 import { SecuritySettingsPage } from "@pages/SecuritySettingsPage.jsx";
 import { NotificationsSettingsPage } from "@pages/NotificationsSettingsPage.jsx";
 import { StubPage } from "@pages/StubPage.jsx";
@@ -33,8 +35,10 @@ export function AppRouter() {
       {/* Защищённые */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route path={ROUTES.home} element={<HomePage />} />
-          <Route path={ROUTES.hero} element={<HeroPage />} />
+          <Route path={ROUTES.home} element={<CharacterPage />} />
+          <Route path={ROUTES.stats} element={<StatsPage />} />
+          <Route path={ROUTES.karma} element={<KarmaPage />} />
+          <Route path={ROUTES.work} element={<WorkPage />} />
           <Route element={<SettingsLayout />}>
             <Route path={ROUTES.settingsSecurity} element={<SecuritySettingsPage />} />
             <Route path={ROUTES.settingsNotifications} element={<NotificationsSettingsPage />} />

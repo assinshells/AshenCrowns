@@ -1,6 +1,8 @@
 export const ROUTES = Object.freeze({
   home: "/",
-  hero: "/hero",
+  work: "/work",
+  stats: "/stats",
+  karma: "/karma",
   settingsSecurity: "/settings/security",
   settingsNotifications: "/settings/notifications",
   about: "/about",
@@ -17,8 +19,10 @@ export const ROUTES = Object.freeze({
 
 /** Заголовки страниц игровой зоны (показываются в верхней панели). */
 export const ROUTE_TITLES = Object.freeze({
-  [ROUTES.home]: "Главная",
-  [ROUTES.hero]: "Персонаж",
+  [ROUTES.home]: "Персонаж",
+  [ROUTES.stats]: "Характеристики",
+  [ROUTES.karma]: "Силы кармы",
+  [ROUTES.work]: "Работа",
   [ROUTES.settingsSecurity]: "Настройки",
   [ROUTES.settingsNotifications]: "Настройки",
   [ROUTES.about]: "Об игре",
@@ -30,7 +34,9 @@ export const ROUTE_TITLES = Object.freeze({
 /** Маршруты, куда безопасно возвращать пользователя после входа. */
 export const PROTECTED_PATHS = Object.freeze([
   ROUTES.home,
-  ROUTES.hero,
+  ROUTES.stats,
+  ROUTES.karma,
+  ROUTES.work,
   ROUTES.settingsSecurity,
   ROUTES.settingsNotifications,
   ROUTES.about,
