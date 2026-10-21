@@ -1,7 +1,7 @@
 /**
  * Коэффициенты оплаты по уровню оплаты города (ключи совпадают с PAY_TIERS).
- * В интерфейсе не показываются. Позже будут добавлены к формуле награды за работу как бонус города
- * (см. workSilver в backend/src/constants/work.constants.js).
+ * В интерфейсе не показываются. Награду считает сервер: множитель города входит в формулу workSilver
+ * (backend/src/constants/work.constants.js, там же зеркальная таблица PAY_COEFFICIENTS — менять синхронно).
  */
 export const PAY_COEFFICIENTS = Object.freeze({
   low: 0.8,

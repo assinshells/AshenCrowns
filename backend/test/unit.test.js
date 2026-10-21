@@ -71,3 +71,24 @@ test("OTP: 6 цифр, HMAC привязан к сценарию и субъек
   assert.ok(!OtpProvider.safeEqualHex(h, OtpProvider.hash("verify_email", "a@b.com", "654321")));
   assert.ok(!h.includes("123456"));
 });
+
+const work = await import("../src/constants/work.constants.js");
+
+test("формула серебра: ставка часа, усталость, карма, множитель города", () => {
+  assert.equal(work.hourlyRate(1), 2.37);
+  assert.equal(work.hourlyRate(2), 3.12);
+  assert.equal(work.hourlyRate(3), 3.87);
+  assert.equal(work.fatigueFactor(1), 1);
+  assert.ok(Math.abs(work.fatigueFactor(8) - 0.82) < 1e-9);
+  assert.equal(work.karmaModifier("field"), 1.0);
+  assert.equal(work.karmaModifier("gate"), 0.9);
+  assert.equal(work.karmaModifier("robbery"), 0.9);
+  // Терент (average), 1-й уровень
+  assert.equal(work.workSilver("field", 1, 1), 2);
+  assert.equal(work.workSilver("field", 8, 1), 16);
+  assert.equal(work.workSilver("gate", 8, 1), 14);
+  // множитель города: 18.96 · 0.82 = 15.55 → ×0.8 / ×1.15 / ×1.3
+  assert.equal(work.workSilver("field", 8, 1, "low"), 12);
+  assert.equal(work.workSilver("field", 8, 1, "good"), 18);
+  assert.equal(work.workSilver("field", 8, 1, "excellent"), 20);
+});

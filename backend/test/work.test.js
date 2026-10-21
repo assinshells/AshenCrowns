@@ -36,7 +36,7 @@ test("работы требуют авторизации", async () => {
   assert.equal((await claim(anon)).status, 401);
 });
 
-test("каталог наград: серебро и карма на 1–8 часов", async () => {
+test("каталог наград (1-й уровень, Терент): серебро и карма на 1–8 часов", async () => {
   const { client } = await registerAndLogin(ctx);
   const res = await state(client);
   assert.equal(res.status, 200);
@@ -44,9 +44,9 @@ test("каталог наград: серебро и карма на 1–8 ча�
   const jobs = Object.fromEntries(res.body.jobs.map((j) => [j.key, j]));
 
   const col = (job, field) => job.rewards.map((r) => r[field]);
-  assert.deepEqual(col(jobs.gate, "silver"), [2, 4, 6, 8, 10, 12, 14, 17]);
-  assert.deepEqual(col(jobs.robbery, "silver"), [2, 4, 6, 8, 10, 12, 14, 17]);
-  assert.deepEqual(col(jobs.field, "silver"), [2, 4, 7, 9, 11, 14, 16, 19]);
+  assert.deepEqual(col(jobs.gate, "silver"), [2, 4, 6, 8, 10, 11, 13, 14]);
+  assert.deepEqual(col(jobs.robbery, "silver"), [2, 4, 6, 8, 10, 11, 13, 14]);
+  assert.deepEqual(col(jobs.field, "silver"), [2, 5, 7, 9, 11, 12, 14, 16]);
   assert.deepEqual(col(jobs.gate, "karma"), [1, 1, 2, 2, 3, 3, 4, 4]);
   assert.deepEqual(col(jobs.robbery, "karma"), [1, 1, 2, 2, 3, 3, 4, 4]);
   assert.deepEqual(col(jobs.field, "karma"), [0, 0, 0, 0, 0, 0, 0, 0]);
@@ -62,7 +62,7 @@ test("взять работу: награда фиксируется на сер
   assert.equal(res.status, 200);
   assert.equal(res.body.active.kind, "gate");
   assert.equal(res.body.active.hours, 8);
-  assert.equal(res.body.active.silver, 17);
+  assert.equal(res.body.active.silver, 14);
   assert.equal(res.body.active.karma, 4);
   assert.equal(res.body.active.status, "active");
   assert.equal(res.body.active.finished, false);
@@ -123,11 +123,11 @@ test("«Принять оплату»: серебро и светлая карм
 
   const res = await claim(client);
   assert.equal(res.status, 200);
-  assert.equal(res.body.stats.silver, 217);
+  assert.equal(res.body.stats.silver, 214);
   assert.deepEqual(res.body.stats.karma, { light: 4, dark: 0 });
 
   const stats = await me(client);
-  assert.equal(stats.silver, 217);
+  assert.equal(stats.silver, 214);
   assert.equal((await state(client)).body.active, null);
   // можно брать следующую
   assert.equal((await start(client, "field", 1)).status, 200);
@@ -159,11 +159,11 @@ test("оплата принимается один раз, даже при па�
   assert.equal(results.filter((r) => r.status === 200).length, 1);
   assert.equal(results.filter((r) => r.status === 409).length, 7);
   const stats = await me(client);
-  assert.equal(stats.silver, 217);
+  assert.equal(stats.silver, 214);
   assert.deepEqual(stats.karma, { light: 4, dark: 0 });
 
   assert.equal((await claim(client)).status, 409);
-  assert.equal((await me(client)).silver, 217);
+  assert.equal((await me(client)).silver, 214);
 });
 
 test("нейтральная работа: больше серебра, карма не меняется", async () => {
@@ -171,7 +171,7 @@ test("нейтральная работа: больше серебра, карм
   await start(client, "field", 8);
   await finishNow(user);
   const res = await claim(client);
-  assert.equal(res.body.stats.silver, 200 + 19);
+  assert.equal(res.body.stats.silver, 200 + 16);
   assert.deepEqual(res.body.stats.karma, { light: 0, dark: 0 });
 });
 
@@ -267,4 +267,21 @@ test("опыт до следующего уровня: 5 · уровень² (1�
     assert.equal(stats.level, Number(level));
     assert.equal(stats.experienceToNext, need, `уровень ${level}`);
   }
+});
+
+test("каталог зависит от уровня игрока: ставка 1.62 + уровень · 0.75", async () => {
+  const { client, user } = await registerAndLogin(ctx);
+  await ctx.pool.query("UPDATE users SET level = 3 WHERE lower(email) = lower($1)", [user.email]);
+  const res = await state(client);
+  const jobs = Object.fromEntries(res.body.jobs.map((j) => [j.key, j]));
+  const col = (job) => job.rewards.map((r) => r.silver);
+  assert.deepEqual(col(jobs.gate), [3, 7, 10, 13, 16, 18, 21, 23]);
+  assert.deepEqual(col(jobs.field), [4, 8, 11, 14, 17, 20, 23, 25]);
+});
+
+test("серебро фиксируется по уровню игрока на момент взятия работы", async () => {
+  const { client, user } = await registerAndLogin(ctx);
+  await ctx.pool.query("UPDATE users SET level = 2 WHERE lower(email) = lower($1)", [user.email]);
+  const res = await start(client, "field", 8);
+  assert.equal(res.body.active.silver, 20);
 });
