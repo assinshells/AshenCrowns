@@ -49,6 +49,17 @@ describe("StatsPage", () => {
     expect(within(derived).getByText("Шанс на защиту").nextSibling.textContent).toBe("3");
   });
 
+  it("под каждой характеристикой — инфотекст", () => {
+    setStats(stats());
+    render(<StatsPage />);
+    expect(screen.getByText(/Чем вы сильнее, тем больше повреждений/)).toBeTruthy();
+    expect(screen.getByText(/Чем больше одаренность, тем меньше урона/)).toBeTruthy();
+    expect(screen.getByText(/телосложение, тем больше у вас пунктов жизни и быстрее идёт восстановление/)).toBeTruthy();
+    expect(screen.getByText(/Удача влияет на ваш шанс нанести критический удар/)).toBeTruthy();
+    expect(screen.getByText(/Чем выше ваш навык оружия/)).toBeTruthy();
+    expect(screen.getByText(/Чем лучше вы управляетесь со своим щитом/)).toBeTruthy();
+  });
+
   it("карма: показывается та, что есть (светлая или тёмная)", () => {
     setStats(stats({ karma: { light: 2, dark: 0 } }));
     render(<StatsPage />);

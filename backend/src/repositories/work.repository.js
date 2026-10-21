@@ -8,7 +8,7 @@ export const WorkRepository = {
   async create({ userId, kind, hours, silver, karma }) {
     try {
       const { rows } = await pool.query(
-        `INSERT INTO works (user_id, kind, hours, silver, karma, ends_at)
+        `INSERT INTO work_sessions (user_id, kind, hours, silver, karma, ends_at)
          VALUES ($1, $2, $3::smallint, $4, $5, NOW() + make_interval(hours => $3::smallint::int))
          RETURNING ${COLUMNS}, NOW() AS server_time`,
         [userId, kind, hours, silver, karma],
@@ -20,20 +20,14 @@ export const WorkRepository = {
     }
   },
 
-  /** Активная работа (в том числе уже истёкшая, но ещё не зачисленная) и серверное время. */
+  /**
+   * Работа, которая идёт или уже закончилась, но оплата ещё не принята, + серверное время.
+   * Признак «закончилась» считается в БД теми же часами, что и зачисление.
+   */
   async findActive(userId) {
     const { rows } = await pool.query(
-      `SELECT ${COLUMNS}, NOW() AS server_time FROM works WHERE user_id = $1 AND status = 'active'`,
-      [userId],
-    );
-    return rows[0] ?? null;
-  },
-
-  async findLastFinished(userId) {
-    const { rows } = await pool.query(
-      `SELECT ${COLUMNS} FROM works
-        WHERE user_id = $1 AND status <> 'active'
-        ORDER BY id DESC LIMIT 1`,
+      `SELECT ${COLUMNS}, ends_at <= NOW() AS finished, NOW() AS server_time
+         FROM work_sessions WHERE user_id = $1 AND status = 'active'`,
       [userId],
     );
     return rows[0] ?? null;
@@ -45,15 +39,16 @@ export const WorkRepository = {
   },
 
   /**
-   * Зачисляет завершённую работу: серебро и карма игроку, статус → completed.
+   * «Принять оплату»: серебро и карма зачисляются игроку, статус → completed.
    * Один атомарный оператор: повторный/параллельный вызов не зачислит награду дважды
    * (вторая транзакция ждёт блокировку строки и после неё уже не находит активной работы).
+   * Раньше конца времени не срабатывает.
    * @returns {Promise<boolean>} true, если награда была зачислена
    */
-  async settleFinished(userId) {
+  async claim(userId) {
     const { rowCount } = await pool.query(
       `WITH done AS (
-         UPDATE works SET status = 'completed', settled_at = NOW()
+         UPDATE work_sessions SET status = 'completed', settled_at = NOW()
           WHERE user_id = $1 AND status = 'active' AND ends_at <= NOW()
          RETURNING silver, karma
        )
@@ -71,7 +66,7 @@ export const WorkRepository = {
   /** Отмена работы, которая ещё идёт: ничего не зачисляется. @returns {Promise<boolean>} */
   async cancelActive(userId) {
     const { rowCount } = await pool.query(
-      `UPDATE works SET status = 'cancelled', settled_at = NOW()
+      `UPDATE work_sessions SET status = 'cancelled', settled_at = NOW()
         WHERE user_id = $1 AND status = 'active' AND ends_at > NOW()`,
       [userId],
     );

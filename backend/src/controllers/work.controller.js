@@ -1,5 +1,6 @@
 import { WorkService } from "../services/work.service.js";
 import { validateStartWorkRequest } from "../validators/auth.validator.js";
+import { toPlayerStats } from "../dto/auth.dto.js";
 import { HTTP_STATUS } from "../constants/auth.constants.js";
 
 export const WorkController = {
@@ -17,5 +18,10 @@ export const WorkController = {
   cancel: async (req, res) => {
     const cancelled = await WorkService.cancel(req.user);
     res.status(HTTP_STATUS.OK).json({ success: true, cancelled });
+  },
+
+  claim: async (req, res) => {
+    const user = await WorkService.claim(req.user);
+    res.status(HTTP_STATUS.OK).json({ success: true, stats: toPlayerStats(user) });
   },
 };

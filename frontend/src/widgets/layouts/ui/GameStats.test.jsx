@@ -24,6 +24,18 @@ describe("GameStats", () => {
     expect(screen.getByText("0/5")).toBeTruthy();
   });
 
+  it("инфотекст: генерация жизней в час и очки опыта до следующего уровня", () => {
+    useSessionStore.setState({
+      user: {
+        login: "Ворон",
+        stats: { level: 2, health: 75, maxHealth: 75, experience: 4, experienceToNext: 5, silver: 0, rubies: 0 },
+      },
+    });
+    render(<GameStats />);
+    expect(screen.getByText("Генерация пунктов жизни в час: 11")).toBeTruthy();
+    expect(screen.getByText("До следующего уровня очков опыта: 1")).toBeTruthy();
+  });
+
   it("без статов ничего не рисует", () => {
     useSessionStore.setState({ user: { login: "Ворон" } });
     const { container } = render(<GameStats />);

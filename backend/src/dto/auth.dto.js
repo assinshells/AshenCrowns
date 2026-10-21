@@ -1,4 +1,5 @@
 import { normalizeEmail } from "../utils/email.util.js";
+import { experienceForLevel } from "../constants/progression.constants.js";
 
 /**
  * DTO — нормализация входящих данных ПОСЛЕ валидации.
@@ -56,7 +57,8 @@ export const toPlayerStats = (user) => ({
   health: user.health,
   maxHealth: user.max_health,
   experience: user.experience,
-  experienceToNext: user.experience_to_next,
+  // Порог считается по формуле от уровня; колонка experience_to_next больше не используется.
+  experienceToNext: experienceForLevel(user.level),
   silver: user.silver,
   rubies: user.rubies,
   // Карма хранится одним числом (> 0 светлая, < 0 тёмная); в минус не считается.

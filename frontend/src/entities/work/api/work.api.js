@@ -9,3 +9,6 @@ export const startWork = (kind, hours) =>
 
 /** Отменить идущую работу (ничего не зачисляется). */
 export const cancelWork = () => http.post("/api/work/cancel", {}).then((r) => r.data);
+
+/** «Принять оплату»: сервер зачисляет серебро и карму. Возвращает обновлённые игровые параметры. */
+export const claimWork = () => http.post("/api/work/claim", {}).then((r) => r.data.stats);

@@ -6,6 +6,7 @@ import { Block } from "@shared/ui/Block.jsx";
 import { DataList } from "@shared/ui/DataList.jsx";
 import { ErrorAlert } from "@shared/ui/ErrorAlert.jsx";
 import { fetchWork, startWork } from "@entities/work/api/work.api.js";
+import { KarmaValue, SilverValue } from "@entities/work/ui/RewardValue.jsx";
 import {
   JOB_INFO,
   KARMA_LABEL,
@@ -93,8 +94,14 @@ export function WorkPage() {
           const info = JOB_INFO[job.key];
           const reward = rewardFor(job, hours);
           if (!info || !reward) return null;
-          const items = [{ label: "Серебро", value: reward.silver }];
-          if (job.karma) items.push({ label: KARMA_LABEL[job.karma], value: reward.karma });
+          // Карма — светлая или тёмная по виду работы; у нейтральной работы строки с кармой нет.
+          const items = [{ label: "Серебро", value: <SilverValue amount={reward.silver} /> }];
+          if (job.karma) {
+            items.push({
+              label: KARMA_LABEL[job.karma],
+              value: <KarmaValue type={job.karma} amount={reward.karma} />,
+            });
+          }
 
           return (
             <div className="col-md-4" key={job.key}>

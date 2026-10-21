@@ -51,4 +51,27 @@ export function deriveStats(attributes) {
   };
 }
 
+/** Опыт до следующего уровня: 5 · уровень² (1 → 5, 2 → 20, 3 → 45 … 20 → 2000, 30 → 4500). */
+export const EXPERIENCE_FACTOR = 5;
+export const experienceForLevel = (level) => EXPERIENCE_FACTOR * level ** 2;
+
+/** Сколько очков опыта осталось до следующего уровня (получено 4 из 5 → 1). */
+export const experienceLeft = (experience, experienceToNext) =>
+  Math.max(0, experienceToNext - experience);
+
+/** Генерация здоровья в час — 15 % от максимума, с округлением вниз (75 → 11). Только отображение. */
+export const HEALTH_REGEN_SHARE = 0.15;
+export const healthRegenPerHour = (maxHealth) => Math.floor(maxHealth * HEALTH_REGEN_SHARE);
+
+/** Подсказки под характеристиками. */
+export const ATTRIBUTE_HINTS = Object.freeze({
+  strength: "Чем вы сильнее, тем больше повреждений вы нанесёте противнику.",
+  giftedness: "Чем больше одаренность, тем меньше урона вам нанесут.",
+  constitution:
+    "Чем выше ваше телосложение, тем больше у вас пунктов жизни и быстрее идёт восстановление здоровья.",
+  luck: "Удача влияет на ваш шанс нанести критический удар, а также на количество ограбленного серебра.",
+  attack: "Чем выше ваш навык оружия, тем больше шанс ударить противника.",
+  defense: "Чем лучше вы управляетесь со своим щитом, тем меньше урона вы получите.",
+});
+
 export const formatDamage = ({ min, max }) => `${min} - ${max}`;

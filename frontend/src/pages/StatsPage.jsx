@@ -7,6 +7,7 @@ import { useRequest } from "@shared/lib/useRequest.js";
 import { upgradeAttribute } from "@entities/character/api/character.api.js";
 import {
   ATTRIBUTES,
+  ATTRIBUTE_HINTS,
   formatDamage,
   upgradeCost,
 } from "@entities/character/lib/formulas.js";
@@ -73,6 +74,9 @@ export function StatsPage() {
                         <div className="fw-semibold">{label}</div>
                         <div className="small text-body-secondary">
                           Базовое значение: {value} · Цена: {cost}
+                        </div>
+                        <div className="small text-body-secondary fst-italic">
+                          {ATTRIBUTE_HINTS[key]}
                         </div>
                       </div>
                       <button

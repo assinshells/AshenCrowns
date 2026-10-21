@@ -43,9 +43,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_key ON users (lower(email));
 
 -- Работы. Одна активная работа на игрока (частичный UNIQUE-индекс). Награда (silver, karma)
 -- фиксируется при взятии работы; karma > 0 — светлая, < 0 — тёмная, 0 — нейтральная.
--- По окончании времени (ends_at) серебро и карма зачисляются сервером (status → completed),
--- при отмене не зачисляется ничего (status → cancelled). Время — только серверное (NOW()).
-CREATE TABLE IF NOT EXISTS works (
+-- По окончании времени (ends_at) игрок нажимает «Принять оплату»: только тогда серебро и карма
+-- зачисляются (status → completed). При отмене не зачисляется ничего (status → cancelled).
+-- Время — только серверное (NOW()).
+CREATE TABLE IF NOT EXISTS work_sessions (
     id          BIGSERIAL    PRIMARY KEY,
     user_id     INTEGER      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     kind        VARCHAR(16)  NOT NULL CHECK (kind IN ('gate', 'field', 'robbery')),
@@ -58,5 +59,5 @@ CREATE TABLE IF NOT EXISTS works (
     settled_at  TIMESTAMPTZ
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS works_one_active_per_user ON works (user_id) WHERE status = 'active';
-CREATE INDEX IF NOT EXISTS works_user_recent ON works (user_id, id DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS work_sessions_one_active_per_user ON work_sessions (user_id) WHERE status = 'active';
+CREATE INDEX IF NOT EXISTS work_sessions_user_recent ON work_sessions (user_id, id DESC);

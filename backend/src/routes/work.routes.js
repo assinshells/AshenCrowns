@@ -11,5 +11,6 @@ router.use(authGuard, RateLimitProvider.work);
 router.get("/", WorkController.state);
 router.post("/start", WorkController.start);
 router.post("/cancel", WorkController.cancel);
+router.post("/claim", WorkController.claim);
 
 export default router;

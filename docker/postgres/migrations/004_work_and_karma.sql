@@ -6,7 +6,7 @@ BEGIN;
 -- Карма одним числом: > 0 — светлая, < 0 — тёмная.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS karma INTEGER NOT NULL DEFAULT 0;
 
-CREATE TABLE IF NOT EXISTS works (
+CREATE TABLE IF NOT EXISTS work_sessions (
     id          BIGSERIAL    PRIMARY KEY,
     user_id     INTEGER      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     kind        VARCHAR(16)  NOT NULL CHECK (kind IN ('gate', 'field', 'robbery')),
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS works (
     settled_at  TIMESTAMPTZ
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS works_one_active_per_user ON works (user_id) WHERE status = 'active';
-CREATE INDEX IF NOT EXISTS works_user_recent ON works (user_id, id DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS work_sessions_one_active_per_user ON work_sessions (user_id) WHERE status = 'active';
+CREATE INDEX IF NOT EXISTS work_sessions_user_recent ON work_sessions (user_id, id DESC);
 
 COMMIT;

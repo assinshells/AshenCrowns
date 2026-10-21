@@ -124,3 +124,9 @@ export class AlreadyWorkingException extends ConflictException {
     super("Вы уже работаете", "ALREADY_WORKING");
   }
 }
+
+export class NothingToClaimException extends ConflictException {
+  constructor() {
+    super("Награды для получения пока нет", "NOTHING_TO_CLAIM");
+  }
+}

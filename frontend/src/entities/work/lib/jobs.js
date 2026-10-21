@@ -37,3 +37,6 @@ export function formatDuration(ms) {
   const s = total % 60;
   return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
 }
+
+/** Знак числа кармы работы → цвет: > 0 светлая, < 0 тёмная, 0 — кармы нет (нейтральная работа). */
+export const karmaType = (karma) => (karma > 0 ? "light" : karma < 0 ? "dark" : null);

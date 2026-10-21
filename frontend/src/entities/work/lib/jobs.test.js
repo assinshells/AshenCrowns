@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatDuration, rewardFor } from "./jobs.js";
+import { formatDuration, karmaType, rewardFor } from "./jobs.js";
 
 describe("formatDuration", () => {
   it("форматирует ЧЧ:ММ:СС", () => {
@@ -17,5 +17,13 @@ describe("rewardFor", () => {
     const job = { rewards: [{ hours: 1, silver: 2, karma: 1 }, { hours: 2, silver: 4, karma: 1 }] };
     expect(rewardFor(job, 2).silver).toBe(4);
     expect(rewardFor(job, 5)).toBeUndefined();
+  });
+});
+
+describe("karmaType", () => {
+  it("знак кармы → светлая / тёмная / нет", () => {
+    expect(karmaType(4)).toBe("light");
+    expect(karmaType(-2)).toBe("dark");
+    expect(karmaType(0)).toBeNull();
   });
 });

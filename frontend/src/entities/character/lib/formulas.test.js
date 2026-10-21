@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   START_ATTRIBUTES,
+  experienceForLevel,
+  experienceLeft,
+  healthRegenPerHour,
   deriveStats,
   formatDamage,
   upgradeCost,
@@ -35,5 +38,28 @@ describe("deriveStats", () => {
 
   it("удача на производные не влияет", () => {
     expect(deriveStats({ ...START_ATTRIBUTES, luck: 50 })).toEqual(deriveStats(START_ATTRIBUTES));
+  });
+});
+
+describe("experienceForLevel", () => {
+  it("5 · уровень²: значения из задания", () => {
+    expect([1, 2, 3, 4, 5].map(experienceForLevel)).toEqual([5, 20, 45, 80, 125]);
+    expect(experienceForLevel(20)).toBe(2000);
+    expect(experienceForLevel(30)).toBe(4500);
+  });
+});
+
+describe("experienceLeft", () => {
+  it("разница между нужным и полученным", () => {
+    expect(experienceLeft(0, 5)).toBe(5);
+    expect(experienceLeft(4, 5)).toBe(1);
+    expect(experienceLeft(7, 5)).toBe(0);
+  });
+});
+
+describe("healthRegenPerHour", () => {
+  it("по умолчанию 11 в час", () => {
+    expect(healthRegenPerHour(75)).toBe(11);
+    expect(healthRegenPerHour(250)).toBe(37);
   });
 });
