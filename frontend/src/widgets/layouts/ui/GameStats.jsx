@@ -1,6 +1,10 @@
 import { Coins, Gem, Heart } from "lucide-react";
 import { useSessionStore } from "@entities/session/model/useSessionStore.js";
-import { experienceLeft, healthRegenPerHour } from "@entities/character/lib/formulas.js";
+import {
+  START_ATTRIBUTES,
+  experienceLeft,
+  healthRegenPerHour,
+} from "@entities/character/lib/formulas.js";
 
 /**
  * Параметры игрока: жизни, опыт (с уровнем слева), серебро, рубины.
@@ -12,6 +16,7 @@ export function GameStats() {
   if (!stats) return null;
 
   const { level, health, maxHealth, experience, experienceToNext, silver, rubies } = stats;
+  const constitution = stats.attributes?.constitution ?? START_ATTRIBUTES.constitution;
 
   return (
     <ul className="list-unstyled d-flex flex-wrap align-items-start column-gap-3 row-gap-1 mb-0 small" aria-label="Параметры игрока">
@@ -21,7 +26,7 @@ export function GameStats() {
           <span>{health}/{maxHealth}</span>
         </span>
         <span className="small text-body-secondary">
-          Генерация пунктов жизни в час: {healthRegenPerHour(maxHealth)}
+          Генерация пунктов жизни в час: {healthRegenPerHour(constitution)}
         </span>
       </li>
       <li className="d-flex flex-column" title="Опыт" aria-label={`Уровень ${level}, опыт: ${experience} из ${experienceToNext}`}>

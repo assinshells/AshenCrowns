@@ -36,6 +36,28 @@ describe("GameStats", () => {
     expect(screen.getByText("До следующего уровня очков опыта: 1")).toBeTruthy();
   });
 
+  it("генерация жизней растёт с телосложением: 3 → 11, 10 → 16", () => {
+    const withConstitution = (constitution) =>
+      useSessionStore.setState({
+        user: {
+          login: "Ворон",
+          stats: {
+            level: 1, health: 75, maxHealth: 75, experience: 0, experienceToNext: 5, silver: 0, rubies: 0,
+            attributes: { constitution },
+          },
+        },
+      });
+
+    withConstitution(3);
+    render(<GameStats />);
+    expect(screen.getByText("Генерация пунктов жизни в час: 11")).toBeTruthy();
+
+    cleanup();
+    withConstitution(10);
+    render(<GameStats />);
+    expect(screen.getByText("Генерация пунктов жизни в час: 16")).toBeTruthy();
+  });
+
   it("без статов ничего не рисует", () => {
     useSessionStore.setState({ user: { login: "Ворон" } });
     const { container } = render(<GameStats />);

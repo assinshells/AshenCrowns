@@ -58,8 +58,17 @@ describe("experienceLeft", () => {
 });
 
 describe("healthRegenPerHour", () => {
-  it("по умолчанию 11 в час", () => {
-    expect(healthRegenPerHour(75)).toBe(11);
-    expect(healthRegenPerHour(250)).toBe(37);
+  it("телосложение 3 (старт) → 11 в час, 10 → 16", () => {
+    expect(healthRegenPerHour(3)).toBe(11);
+    expect(healthRegenPerHour(10)).toBe(16);
+  });
+
+  it("10 + телосложение · 0.6, округление вниз", () => {
+    expect(healthRegenPerHour(1)).toBe(10); // 10.6
+    expect(healthRegenPerHour(2)).toBe(11); // 11.2
+    expect(healthRegenPerHour(4)).toBe(12); // 12.4
+    expect(healthRegenPerHour(5)).toBe(13); // 13.0
+    expect(healthRegenPerHour(20)).toBe(22);
+    expect(healthRegenPerHour(35)).toBe(31); // 31.0 без ошибки float
   });
 });

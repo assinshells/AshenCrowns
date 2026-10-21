@@ -59,9 +59,13 @@ export const experienceForLevel = (level) => EXPERIENCE_FACTOR * level ** 2;
 export const experienceLeft = (experience, experienceToNext) =>
   Math.max(0, experienceToNext - experience);
 
-/** Генерация здоровья в час — 15 % от максимума, с округлением вниз (75 → 11). Только отображение. */
-export const HEALTH_REGEN_SHARE = 0.15;
-export const healthRegenPerHour = (maxHealth) => Math.floor(maxHealth * HEALTH_REGEN_SHARE);
+/**
+ * Генерация здоровья в час: ⌊10 + телосложение · 0.6⌋ (3 → 11, 10 → 16). Только отображение.
+ * Дробная часть считается целыми числами (телосложение · 6 / 10), чтобы не зависеть от погрешности float.
+ */
+export const HEALTH_REGEN_BASE = 10;
+export const healthRegenPerHour = (constitution) =>
+  HEALTH_REGEN_BASE + Math.floor((constitution * 6) / 10);
 
 /** Подсказки под характеристиками. */
 export const ATTRIBUTE_HINTS = Object.freeze({
