@@ -25,10 +25,11 @@ describe("UserMenu", () => {
     expect(screen.queryByRole("menu")).toBeNull();
   });
 
-  it("открывает «Настройки» и «Выход», закрывается по Escape", async () => {
+  it("открывает «Герой», «Настройки» и «Выход», закрывается по Escape", async () => {
     const user = userEvent.setup();
     renderMenu();
     await user.click(screen.getByRole("button", { expanded: false }));
+    expect(screen.getByRole("menuitem", { name: "Герой" }).getAttribute("href")).toBe("/hero");
     expect(screen.getByRole("menuitem", { name: "Настройки" })).toBeTruthy();
     expect(screen.getByRole("menuitem", { name: "Выход" })).toBeTruthy();
     await user.keyboard("{Escape}");

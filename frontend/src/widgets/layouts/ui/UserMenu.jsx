@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronUp, LogOut, Settings } from "lucide-react";
+import { ChevronUp, LogOut, Settings, User } from "lucide-react";
 import { useSessionStore } from "@entities/session/model/useSessionStore.js";
 import { UserAvatar } from "@entities/session/ui/UserAvatar.jsx";
 import { LogoutButton } from "@features/auth/logout/ui/LogoutButton.jsx";
@@ -8,7 +8,7 @@ import { ROUTES } from "@shared/constants/routes.js";
 
 /**
  * Футер сайдбара: аватар, имя, уровень. По клику открывается меню вверх
- * (Bootstrap .dropup) с пунктами «Настройки» и «Выход». Закрывается по
+ * (Bootstrap .dropup) с пунктами «Герой», «Настройки» и «Выход». Закрывается по
  * клику вне меню, Escape и выбору пункта.
  */
 export function UserMenu({ onNavigate }) {
@@ -58,6 +58,17 @@ export function UserMenu({ onNavigate }) {
 
       {open && (
         <ul id={menuId} className="dropdown-menu show w-100 shadow" role="menu">
+          <li role="none">
+            <Link
+              to={ROUTES.hero}
+              className="dropdown-item d-flex align-items-center gap-2"
+              role="menuitem"
+              onClick={choose}
+            >
+              <User size={16} aria-hidden="true" />
+              Герой
+            </Link>
+          </li>
           <li role="none">
             <Link
               to={ROUTES.settingsSecurity}

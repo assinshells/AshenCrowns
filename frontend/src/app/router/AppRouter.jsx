@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { ROUTES } from "@shared/constants/routes.js";
 import { ProtectedRoute, PublicOnlyRoute } from "./guards.jsx";
 import { AppLayout, SettingsLayout } from "@widgets/layouts";
@@ -8,11 +8,13 @@ import { RegisterPage } from "@pages/RegisterPage.jsx";
 import { ForgotPasswordPage } from "@pages/ForgotPasswordPage.jsx";
 import { ResetPasswordPage } from "@pages/ResetPasswordPage.jsx";
 import { VerifyOtpPage } from "@pages/VerifyOtpPage.jsx";
-import { CharacterPage } from "@pages/CharacterPage.jsx";
+import { HeroPage } from "@pages/HeroPage.jsx";
 import { StatsPage } from "@pages/StatsPage.jsx";
 import { KarmaPage } from "@pages/KarmaPage.jsx";
 import { WorkPage } from "@pages/WorkPage.jsx";
 import { WorkProgressPage } from "@pages/WorkProgressPage.jsx";
+import { WorldMissionsPage } from "@pages/WorldMissionsPage.jsx";
+import { WorldMapPage } from "@pages/WorldMapPage.jsx";
 import { SecuritySettingsPage } from "@pages/SecuritySettingsPage.jsx";
 import { NotificationsSettingsPage } from "@pages/NotificationsSettingsPage.jsx";
 import { StubPage } from "@pages/StubPage.jsx";
@@ -36,11 +38,17 @@ export function AppRouter() {
       {/* Защищённые */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route path={ROUTES.home} element={<CharacterPage />} />
+          {/* «Персонаж» открывается сразу на подпункте «Характеристики» */}
+          <Route path={ROUTES.home} element={<Navigate to={ROUTES.stats} replace />} />
+          <Route path={ROUTES.hero} element={<HeroPage />} />
           <Route path={ROUTES.stats} element={<StatsPage />} />
           <Route path={ROUTES.karma} element={<KarmaPage />} />
           <Route path={ROUTES.work} element={<WorkPage />} />
           <Route path={ROUTES.workProgress} element={<WorkProgressPage />} />
+          {/* «Мир» открывается сразу на подпункте «Миссии» */}
+          <Route path={ROUTES.world} element={<Navigate to={ROUTES.worldMissions} replace />} />
+          <Route path={ROUTES.worldMissions} element={<WorldMissionsPage />} />
+          <Route path={ROUTES.worldMap} element={<WorldMapPage />} />
           <Route element={<SettingsLayout />}>
             <Route path={ROUTES.settingsSecurity} element={<SecuritySettingsPage />} />
             <Route path={ROUTES.settingsNotifications} element={<NotificationsSettingsPage />} />

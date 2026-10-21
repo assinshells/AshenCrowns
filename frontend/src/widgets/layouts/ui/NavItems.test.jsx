@@ -27,3 +27,17 @@ describe("NavItems: подпункты раздела «Персонаж»", () 
     expect(screen.queryByRole("link", { name: "Силы кармы" })).toBeNull();
   });
 });
+
+describe("NavItems: раздел «Мир»", () => {
+  it.each(["/world", "/world/missions", "/world/map"])("подпункты видны на %s", (path) => {
+    renderAt(path);
+    expect(screen.getByRole("link", { name: "Миссии" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Карта мира" })).toBeTruthy();
+  });
+
+  it("подпункты скрыты на других страницах", () => {
+    renderAt("/work");
+    expect(screen.queryByRole("link", { name: "Миссии" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Карта мира" })).toBeNull();
+  });
+});

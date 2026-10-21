@@ -13,6 +13,14 @@ const NAV_ITEMS = [
     ],
   },
   { to: ROUTES.work, label: "Работа" },
+  {
+    to: ROUTES.world,
+    label: "Мир",
+    children: [
+      { to: ROUTES.worldMissions, label: "Миссии" },
+      { to: ROUTES.worldMap, label: "Карта мира" },
+    ],
+  },
 ];
 
 const linkClass = ({ isActive }) => `nav-link${isActive ? " active" : ""}`;
