@@ -130,3 +130,16 @@ export class NothingToClaimException extends ConflictException {
     super("Награды для получения пока нет", "NOTHING_TO_CLAIM");
   }
 }
+
+// 404/403 для мира: неизвестный город отличается от закрытого (уровень, событие).
+export class CityNotFoundException extends BaseException {
+  constructor() {
+    super("Город не найден", HTTP_STATUS.NOT_FOUND, "CITY_NOT_FOUND");
+  }
+}
+
+export class CityLockedException extends AuthorizationException {
+  constructor() {
+    super("Город пока недоступен", "CITY_LOCKED");
+  }
+}

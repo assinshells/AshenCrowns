@@ -187,3 +187,11 @@ export const validateStartWorkRequest = (raw) => {
   }
   finish(errors);
 };
+
+/** :id города из URL — положительное целое в пределах SMALLINT; возвращает число. */
+export const parseCityId = (raw) => {
+  if (typeof raw !== "string" || !/^[1-9][0-9]{0,4}$/.test(raw) || Number(raw) > 32767) {
+    throw new ValidationException("Неверный идентификатор города");
+  }
+  return Number(raw);
+};

@@ -4,7 +4,7 @@ import { ATTRIBUTES, HEALTH_PER_CONSTITUTION } from "../constants/character.cons
 const COLUMNS =
   "id, login, email, password_hash, avatar_path, email_verified_at, created_at, " +
   "level, health, max_health, experience, experience_to_next, silver, rubies, " +
-  "strength, giftedness, constitution, luck, attack_skill, defense_skill, karma";
+  "strength, giftedness, constitution, luck, attack_skill, defense_skill, karma, current_city_id";
 
 const UNIQUE_VIOLATION = "23505";
 

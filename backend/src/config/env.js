@@ -108,5 +108,6 @@ export const env = {
     accountMax: Number(getEnv("RATE_LIMIT_ACCOUNT_MAX", 20)),
     characterMax: Number(getEnv("RATE_LIMIT_CHARACTER_MAX", 120)),
     workMax: Number(getEnv("RATE_LIMIT_WORK_MAX", 240)),
+    worldMax: Number(getEnv("RATE_LIMIT_WORLD_MAX", 240)),
   },
 };

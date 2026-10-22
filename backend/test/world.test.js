@@ -200,3 +200,127 @@ test("отмена события закрывает город, но не уд�
 test("WorldService.syncEvents работает без событий", async () => {
   assert.deepEqual(await WorldService.syncEvents(), { opened: 0, closed: 0 });
 });
+
+// ── HTTP API ────────────────────────────────────────────────────────────
+const setLevel = (user, level) =>
+  ctx.pool.query("UPDATE users SET level = $2 WHERE lower(email) = lower($1)", [user.email, level]);
+const cityByCode = async (code) => (await one(ctx.pool, "SELECT id FROM cities WHERE code = $1", [code])).id;
+
+test("API мира требует авторизации", async () => {
+  const anon = ctx.newClient();
+  assert.equal((await anon.get("/api/world")).status, 401);
+  assert.equal((await anon.get("/api/world/cities/1")).status, 401);
+});
+
+test("GET /api/world: 23 города, открыт только стартовый, текущий отмечен", async () => {
+  const { client } = await registerAndLogin(ctx);
+  const res = await client.get("/api/world");
+  assert.equal(res.status, 200);
+  assert.equal(res.body.success, true);
+  assert.ok(Number.isFinite(Date.parse(res.body.serverTime)));
+  const { cities, currentCityId } = res.body;
+  assert.equal(cities.length, 23);
+  assert.equal(cities.filter((c) => c.kind === "permanent").length, 20);
+
+  const start = cities.find((c) => c.code === START_CITY_CODE);
+  assert.equal(currentCityId, start.id);
+  assert.equal(start.isCurrent, true);
+  assert.equal(cities.filter((c) => c.isCurrent).length, 1);
+  assert.deepEqual(cities.filter((c) => c.accessible).map((c) => c.code), [START_CITY_CODE]);
+  assert.equal(start.requiredLevel, 1);
+  // постоянные города идут по возрастанию уровня, города событий — в конце
+  const perm = cities.filter((c) => c.kind === "permanent").map((c) => c.requiredLevel);
+  assert.deepEqual(perm, [...perm].sort((a, b) => a - b));
+  assert.deepEqual(cities.slice(-3).map((c) => c.kind), ["event", "event", "event"]);
+  // внутренние поля не утекают
+  assert.ok(!("risk_coefficient" in start) && !("unlock_level" in start) && !("world_event_id" in start));
+});
+
+test("города событий без дат: закрыты, состояние unscheduled, дат нет", async () => {
+  const { client } = await registerAndLogin(ctx);
+  const { cities } = (await client.get("/api/world")).body;
+  for (const c of cities.filter((x) => x.kind === "event")) {
+    assert.equal(c.accessible, false);
+    assert.deepEqual(c.event, { state: "unscheduled", startsAt: null, endsAt: null, timezone: "UTC" });
+  }
+});
+
+test("GET /api/world/cities/:id: локации стартового города, риск словесный", async () => {
+  const { client } = await registerAndLogin(ctx);
+  const id = await cityByCode(START_CITY_CODE);
+  const res = await client.get(`/api/world/cities/${id}`);
+  assert.equal(res.status, 200);
+  assert.equal(res.body.city.code, START_CITY_CODE);
+  const locs = res.body.locations;
+  assert.deepEqual(locs.map((l) => l.name), ["Рыночная площадь", "Зал гильдий", "Старая стена", "Подвалы под площадью"]);
+  assert.deepEqual(locs.map((l) => l.risk), ["none", "none", "low", "moderate"]);
+  assert.ok(locs.every((l) => l.accessible && l.requiredLevel === 1 && l.requiresQuest === false));
+  assert.ok(locs.every((l) => !("risk_coefficient" in l) && !("riskCoefficient" in l) && !("city_id" in l)));
+});
+
+test("закрытый по уровню город не раскрывает локации; с нужным уровнем открывается", async () => {
+  const { client, user } = await registerAndLogin(ctx);
+  const id = await cityByCode("lower_eldran"); // уровень 3
+  const denied = await client.get(`/api/world/cities/${id}`);
+  assert.equal(denied.status, 403);
+  assert.equal(denied.body.error.code, "CITY_LOCKED");
+  assert.equal(denied.body.locations, undefined);
+
+  await setLevel(user, 3);
+  const ok = await client.get(`/api/world/cities/${id}`);
+  assert.equal(ok.status, 200);
+  // «Нижние стоки» — риск 0.15, уровень локации выше уровня города
+  const sewers = ok.body.locations.find((l) => l.code === "lower_eldran_lower_sewers");
+  assert.equal(sewers.risk, "high");
+  assert.equal(sewers.requiredLevel, 5);
+  assert.equal(sewers.accessible, false);
+  assert.equal(ok.body.locations.filter((l) => l.accessible).length, 3);
+
+  const map = (await client.get("/api/world")).body.cities;
+  assert.deepEqual(map.filter((c) => c.accessible).map((c) => c.code), [START_CITY_CODE, "lower_eldran"]);
+});
+
+test("неверный и неизвестный id города", async () => {
+  const { client } = await registerAndLogin(ctx);
+  for (const bad of ["abc", "0", "-1", "1.5", "99999", "1e2"]) {
+    const res = await client.get(`/api/world/cities/${bad}`);
+    assert.equal(res.status, 400, bad);
+  }
+  const res = await client.get("/api/world/cities/9999");
+  assert.equal(res.status, 404);
+  assert.equal(res.body.error.code, "CITY_NOT_FOUND");
+});
+
+test("город события открывается и закрывается по календарю, остаётся в списке", async () => {
+  const { client, user } = await registerAndLogin(ctx);
+  await setLevel(user, 50);
+  const id = await cityByCode("verbny_grad");
+  try {
+    await ctx.pool.query(
+      "SELECT world_event_schedule(1::smallint, NOW() - interval '1 hour', NOW() + interval '1 hour', 'Europe/Kyiv')",
+    );
+    const open = (await client.get("/api/world")).body.cities.find((c) => c.id === id);
+    assert.equal(open.accessible, true);
+    assert.equal(open.event.state, "open");
+    assert.equal(open.event.timezone, "Europe/Kyiv");
+    assert.ok(Date.parse(open.event.endsAt) > Date.now());
+    assert.equal((await client.get(`/api/world/cities/${id}`)).body.locations.length, 4);
+
+    // будущее событие: виден «upcoming», вход закрыт
+    await ctx.pool.query("UPDATE world_events SET starts_at = NOW() + interval '1 day', ends_at = NOW() + interval '2 days' WHERE id = 1");
+    const upcoming = (await client.get("/api/world")).body.cities.find((c) => c.id === id);
+    assert.equal(upcoming.event.state, "upcoming");
+    assert.equal(upcoming.accessible, false);
+    assert.equal((await client.get(`/api/world/cities/${id}`)).status, 403);
+
+    // событие закончилось: город всё ещё в списке, доступа нет
+    await ctx.pool.query("UPDATE world_events SET starts_at = NOW() - interval '2 days', ends_at = NOW() - interval '1 day' WHERE id = 1");
+    const ended = (await client.get("/api/world")).body.cities.find((c) => c.id === id);
+    assert.equal(ended.event.state, "closed");
+    assert.equal(ended.accessible, false);
+  } finally {
+    await ctx.pool.query(
+      "UPDATE world_events SET status = 'unscheduled', starts_at = NULL, ends_at = NULL, timezone = 'UTC' WHERE id = 1",
+    );
+  }
+});

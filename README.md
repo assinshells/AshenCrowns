@@ -152,8 +152,10 @@ cd frontend && npm test     # Vitest + Testing Library
 - `locations` — по 4 локации на город, принадлежность только через `city_id`; свой `unlock_level`, необязательный `required_quest_code` и собственный `risk_coefficient` 0.00–1.00 (от города не наследуется).
 - `world_events` + `world_event_runs` — календарь событий (начало, конец, часовой пояс IANA, статус, `min_level`) и история запусков. Города и локации событий хранятся постоянно: после окончания события доступ закрывается, строки не удаляются (каскадов нет, прямое удаление запрещено триггером).
 - Доступ: `world_city_access(city_id, level, at)` и `world_location_access(location_id, level, at, quests)`. Для города события доступ — по времени окна, не зависит от задержки синхронизации; `world_events_sync()` (backend вызывает раз в минуту) обновляет статусы и историю. Новый запуск: `world_event_schedule(event_id, starts_at, ends_at, timezone)`.
+- API (только чтение, нужна авторизация, лимит `RATE_LIMIT_WORLD_MAX`): `GET /api/world` — все города с `accessible`, `requiredLevel`, `isCurrent`, состоянием события (`open` / `upcoming` / `closed` / `unscheduled`, даты и часовой пояс) и `currentCityId`; `GET /api/world/cities/:id` — город и его локации (`accessible`, `requiredLevel`, `requiresQuest`, словесный `risk`). Закрытый город отвечает `403 CITY_LOCKED` и локаций не раскрывает, неизвестный — `404 CITY_NOT_FOUND`. Уровень берётся из профиля на сервере. Числовой `risk_coefficient` клиенту не отдаётся.
+- Клиент: «Мир → Карта мира» (`frontend/src/pages/WorldMapPage.jsx`) — постоянные города и отдельный блок городов событий; закрытые города видны, но неактивны (нужный уровень / состояние события); локации подгружаются при раскрытии города.
 - Названия, уровни, риски и даты меняются обычным `UPDATE`, без правки кода. Задел под баланс: `P_effective = P_base · (1 + risk_coefficient)` (`effectiveIndex` в `backend/src/constants/world.constants.js`) — индекс, не формула здоровья или урона.
-- Противников, боёв, миссий и наград пока нет. Даты событий не заданы (`unscheduled`) — назначьте через `world_event_schedule`.
+- Перемещений между городами, противников, боёв, миссий и наград пока нет. Даты событий не заданы (`unscheduled`) — назначьте через `world_event_schedule`.
 
 ## Игровые формулы
 
