@@ -36,7 +36,7 @@ test("работы требуют авторизации", async () => {
   assert.equal((await claim(anon)).status, 401);
 });
 
-test("каталог наград (1-й уровень, Терент): серебро и карма на 1–8 часов", async () => {
+test("каталог наград (1-й уровень): серебро и карма на 1–8 часов", async () => {
   const { client } = await registerAndLogin(ctx);
   const res = await state(client);
   assert.equal(res.status, 200);

@@ -5,6 +5,7 @@ import logger from "./config/logger.js";
 import { env, assertRequiredEnv } from "./config/env.js";
 import { connectDatabase, pool } from "./config/database.js";
 import { connectRedis, disconnectRedis } from "./config/redis.js";
+import { WorldService } from "./services/world.service.js";
 
 try {
   assertRequiredEnv();
@@ -63,6 +64,7 @@ const start = async () => {
   try {
     await connectDatabase();
     await connectRedis();
+    WorldService.startEventScheduler();
     httpServer.listen(PORT, () => {
       logger.info(`Server running on port ${PORT} [${process.env.NODE_ENV}]`);
     });

@@ -2,17 +2,15 @@
  * Работы. Награда считается ТОЛЬКО на сервере при взятии работы и фиксируется в БД;
  * зачисляется после окончания времени по кнопке «Принять оплату» (POST /api/work/claim).
  *
- *  Серебро = round( ставка часа(уровень) · часы · коэффициент длительности · модификатор кармы · множитель города )
+ *  Серебро = round( ставка часа(уровень) · часы · коэффициент длительности · модификатор кармы )
  *
  *   ставка часа(уровень)       = 1.62 + уровень · 0.75            (1 → 2.37, 2 → 3.12, 3 → 3.87)
  *   коэффициент длительности   = 1.0 при 1 ч … 0.82 при 8 ч      (усталость; между точками — линейно)
  *   модификатор кармы          = 1.0 нейтральная, 0.9 добрая/злая
- *   множитель города           = PAY_COEFFICIENTS[уровень оплаты] (low 0.8, average 1.0, good 1.15, excellent 1.3)
  *
  *  Карма (светлая / тёмная):   ⌈часы / 2⌉                         → 1, 1, 2, 2, 3, 3, 4, 4
  *
- * Эталон — Терент (средняя оплата, множитель 1.0). Пока перемещений между городами нет,
- * все работы считаются по Терент-у (payTier = "average"). Зеркало на клиенте — frontend/.../payCoefficients.js.
+ * Оплата не зависит от города или локации.
  */
 export const WORK_MIN_HOURS = 1;
 export const WORK_MAX_HOURS = 8;
@@ -30,15 +28,6 @@ export const FATIGUE_AT_MAX_HOURS = 0.82;
 /** Модификатор кармы работы. Пока одинаков для всех уровней (3-й аргумент — задел под уровневую шкалу). */
 export const NEUTRAL_KARMA_MODIFIER = 1.0;
 export const KARMA_WORK_MODIFIER = 0.9;
-
-/** Множители оплаты города по уровню оплаты. Ключи совпадают с PAY_TIERS на клиенте. */
-export const PAY_COEFFICIENTS = Object.freeze({
-  low: 0.8,
-  average: 1.0,
-  good: 1.15,
-  excellent: 1.3,
-});
-export const DEFAULT_PAY_TIER = "average";
 
 /** karma: "light" | "dark" | null (нейтральная работа — карму не меняет). */
 export const WORKS = Object.freeze({
@@ -60,13 +49,12 @@ export const fatigueFactor = (hours) =>
 export const karmaModifier = (kind) =>
   WORKS[kind].karma === null ? NEUTRAL_KARMA_MODIFIER : KARMA_WORK_MODIFIER;
 
-export const workSilver = (kind, hours, level = 1, payTier = DEFAULT_PAY_TIER) =>
+export const workSilver = (kind, hours, level = 1) =>
   Math.round(
     hourlyRate(level) *
       hours *
       fatigueFactor(hours) *
-      karmaModifier(kind) *
-      PAY_COEFFICIENTS[payTier],
+      karmaModifier(kind),
   );
 
 export const workKarma = (kind, hours) => {
@@ -77,13 +65,13 @@ export const workKarma = (kind, hours) => {
 };
 
 /** Таблица наград для клиента: по каждой работе — серебро и карма на 1…8 часов. */
-export const workCatalog = (level = 1, payTier = DEFAULT_PAY_TIER) =>
+export const workCatalog = (level = 1) =>
   WORK_KINDS.map((kind) => ({
     key: kind,
     karma: WORKS[kind].karma,
     rewards: WORK_HOURS.map((hours) => ({
       hours,
-      silver: workSilver(kind, hours, level, payTier),
+      silver: workSilver(kind, hours, level),
       karma: Math.abs(workKarma(kind, hours)),
     })),
   }));
